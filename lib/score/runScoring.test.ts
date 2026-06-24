@@ -33,5 +33,5 @@ describe('runScoring', () => {
     const { data } = await client
       .from('clusters').select('heat_score').eq('id', clusterId).single();
     expect(data!.heat_score).toBeCloseTo(pressHeat(4, 8), 5);
-  });
+  }, 60000); // chấm điểm mọi cụm đang mở qua mạng nên cho thời gian rộng
 });

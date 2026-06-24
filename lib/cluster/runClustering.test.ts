@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createServiceClient } from '../db/client';
 import { upsertPosts } from '../db/posts';
 import { runClustering } from './runClustering';
@@ -40,6 +40,15 @@ describe('runClustering', () => {
       post('T-B', 'g2', 'GPT-5.2 tops coding benchmark'),
       post('T-A', 'p1', 'Apple sets iPhone 17 event'),
     ]);
+  });
+
+  afterAll(async () => {
+    const { data } = await client
+      .from('posts').select('cluster_id').like('url', 'https://example.com/%');
+    const ids = [...new Set((data ?? []).map((p) => p.cluster_id).filter(Boolean))];
+    await client.from('posts').delete().like('url', 'https://example.com/%');
+    if (ids.length) await client.from('clusters').delete().in('id', ids);
+    await client.from('sources').delete().like('name', 'T-%');
   });
 
   it('gom 2 tin GPT thành 1 cụm (2 nguồn), iPhone thành cụm riêng', async () => {

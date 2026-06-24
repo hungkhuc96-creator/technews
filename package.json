@@ -9,7 +9,9 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "ingest:press": "node --env-file=.env.local --import tsx scripts/ingest-press.ts"
+    "ingest:press": "node --env-file=.env.local --import tsx scripts/ingest-press.ts",
+    "dev": "next dev",
+    "process:press": "node --env-file=.env.local --import tsx scripts/cluster-score.ts"
   },
   "keywords": [],
   "author": "",
