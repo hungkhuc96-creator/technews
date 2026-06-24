@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "ingest:press": "node --env-file=.env.local --import tsx scripts/ingest-press.ts"
   },
   "keywords": [],
   "author": "",
