@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>The Verge</title>
+    <item>
+      <title>OpenAI ra mắt GPT-5.2</title>
+      <link>https://www.theverge.com/gpt-5-2</link>
+      <guid>https://www.theverge.com/gpt-5-2</guid>
+      <pubDate>Tue, 23 Jun 2026 04:00:00 GMT</pubDate>
+      <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Jane Doe</dc:creator>
+      <description><![CDATA[<p>Mô hình mới dẫn đầu benchmark.</p>]]></description>
+    </item>
+    <item>
+      <title>Apple chốt sự kiện iPhone 17</title>
+      <link>https://www.theverge.com/iphone-17</link>
+      <guid>https://www.theverge.com/iphone-17</guid>
+      <pubDate>Tue, 23 Jun 2026 02:00:00 GMT</pubDate>
+      <description>Thư mời đã gửi.</description>
+    </item>
+  </channel>
+</rss>
