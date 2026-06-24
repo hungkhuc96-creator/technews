@@ -37,7 +37,7 @@ describe('runClustering', () => {
     // nạp 3 post: 2 tin GPT từ 2 nguồn khác nhau, 1 tin iPhone
     await upsertPosts(client, [
       post('T-A', 'g1', 'OpenAI releases GPT-5.2'),
-      post('T-B', 'g2', 'GPT-5.2 tops coding benchmark'),
+      post('T-B', 'g2', 'GPT-5.2 benchmark leak from Nvidia'),
       post('T-A', 'p1', 'Apple sets iPhone 17 event'),
     ]);
   });
@@ -67,8 +67,11 @@ describe('runClustering', () => {
     expect(byId.p1).not.toBe(byId.g1); // iPhone khác cụm
 
     const { data: gptCluster } = await client
-      .from('clusters').select('n_sources, post_count').eq('id', byId.g1).single();
+      .from('clusters').select('n_sources, post_count, entities').eq('id', byId.g1).single();
     expect(gptCluster!.n_sources).toBe(2);  // 2 nguồn (T-A, T-B)
     expect(gptCluster!.post_count).toBe(2);
+    // Từ khóa cụm ĐÔNG CỨNG theo bài đầu — không nuốt thêm "nvidia" từ bài thứ 2.
+    expect(gptCluster!.entities).toContain('gpt-5.2');
+    expect(gptCluster!.entities).not.toContain('nvidia');
   }, 60000); // nhiều lượt gọi DB qua mạng nên cho thời gian rộng
 });

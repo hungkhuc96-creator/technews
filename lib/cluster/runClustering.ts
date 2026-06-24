@@ -8,6 +8,9 @@ export interface ClusterDeps {
 }
 
 const WINDOW_MS = 48 * 60 * 60 * 1000;
+// Ngưỡng giống nhau để nhập cụm. Đông cứng centroid/entities + ngưỡng cao hơn
+// để tránh "cụm hố đen" nuốt bài không liên quan.
+const JOIN_THRESHOLD = 0.86;
 
 export async function runClustering(
   client: SupabaseClient,
@@ -57,27 +60,19 @@ export async function runClustering(
       .filter((c) => Array.isArray(c.centroid))
       .map((c) => ({ id: c.id, centroid: c.centroid as number[], entities: c.entities ?? [] }));
 
-    const match = bestCluster(embedding, entities, candidates);
+    const match = bestCluster(embedding, entities, candidates, JOIN_THRESHOLD);
 
     if (match) {
-      // 3a) Nhập cụm: cập nhật centroid (trung bình động), post_count, thực thể, nguồn
+      // 3a) Nhập cụm: centroid + entities ĐÔNG CỨNG theo bài đầu (không trôi).
+      // Chỉ cập nhật số đếm + nguồn.
       const cluster = (openClusters ?? []).find((c) => c.id === match.clusterId)!;
-      const oldCentroid = cluster.centroid as number[];
-      const oldCount = cluster.post_count as number;
-      const newCentroid = oldCentroid.map(
-        (x, i) => (x * oldCount + embedding[i]) / (oldCount + 1),
-      );
-      const mergedEntities = [...new Set([...(cluster.entities ?? []), ...entities])];
-
       await client.from('posts').update({ cluster_id: match.clusterId }).eq('id', p.id);
 
       const { sources, sourceTypes } = await sourceStats(client, match.clusterId);
       await client
         .from('clusters')
         .update({
-          centroid: newCentroid,
-          post_count: oldCount + 1,
-          entities: mergedEntities,
+          post_count: (cluster.post_count as number) + 1,
           n_sources: sources,
           source_types: sourceTypes,
           last_updated: now.toISOString(),
