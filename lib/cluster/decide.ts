@@ -15,6 +15,8 @@ export function bestCluster(
   const entitySet = new Set(entities);
   let best: { clusterId: string; score: number } | null = null;
   for (const c of candidates) {
+    // Bỏ qua cụm khác số chiều (so vector lệch chiều là vô nghĩa).
+    if (c.centroid.length !== embedding.length) continue;
     const overlap = c.entities.some((e) => entitySet.has(e));
     if (!overlap) continue;
     const score = cosineSimilarity(embedding, c.centroid);
