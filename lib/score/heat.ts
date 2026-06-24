@@ -1,8 +1,8 @@
-// Trọng số xếp độ nóng báo chí:
-// - ưu tiên ĐỘ PHỦ (số nguồn) bằng cách bình phương → 2 nguồn = 4×, 7 nguồn = 49×
-// - giảm nhẹ phạt thời gian (1.5 → 1.2) để cụm nhiều nguồn nổi lên dù cũ hơn chút
-const BREADTH_POWER = 2;
-const TIME_GRAVITY = 1.2;
+// Trọng số xếp độ nóng báo chí: ƯU TIÊN ĐỘ MỚI.
+// - số nguồn tuyến tính (điểm cộng độ phủ vừa phải, không bình phương)
+// - phạt thời gian mạnh (mũ 1.5) để feed luôn tươi, tin cũ trôi xuống dù nhiều nguồn
+const BREADTH_POWER = 1;
+const TIME_GRAVITY = 1.5;
 
 export function pressHeat(nSources: number, ageHours: number): number {
   return Math.pow(nSources, BREADTH_POWER) / Math.pow(ageHours + 2, TIME_GRAVITY);

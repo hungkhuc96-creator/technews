@@ -100,14 +100,14 @@ từ khóa sản phẩm từ title bằng heuristic. Đủ cho entity gate; khô
 
 Hai cách tính tách theo loại nguồn, rồi quy về **thang 0–100** để trộn chung feed.
 
-### Báo chí — độ phủ + độ mới
+### Báo chí — độ mới là chính, độ phủ là điểm cộng
 ```
-heat_press = n_sources^2 / (age_hours + 2) ^ 1.2
+heat_press = n_sources / (age_hours + 2) ^ 1.5
 ```
-- Tử số = **số nguồn bình phương** → ưu tiên mạnh độ phủ (2 nguồn = 4×, 7 nguồn = 49×).
-- Mẫu số = nguội dần theo thời gian (mũ 1.2, nhẹ hơn) → cụm nhiều nguồn nổi lên dù
-  cũ hơn chút, nhưng feed vẫn tươi.
-- Tham số `BREADTH_POWER`/`TIME_GRAVITY` để trong `lib/score/heat.ts`, dễ tinh chỉnh.
+- **Ưu tiên độ mới**: phạt thời gian mạnh (mũ 1.5) → feed luôn tươi, tin cũ trôi
+  xuống dù nhiều nguồn (tránh cụm cũ "đóng đinh" top).
+- Số nguồn tuyến tính = điểm cộng độ phủ vừa phải (cụm nhiều nguồn *mới* vẫn lên cao).
+- Tham số `BREADTH_POWER`/`TIME_GRAVITY` trong `lib/score/heat.ts`, dễ tinh chỉnh.
 
 ### YouTube & Reddit — engagement tuyệt đối (v1), luôn đứng riêng
 ```
