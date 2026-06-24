@@ -51,12 +51,12 @@ Việt dạng bullet, biết có bao nhiêu nguồn đưa tin, và bình luận 
 | Cập nhật realtime | **Supabase Realtime** | Banner "tin mới" không cần tự viết websocket |
 | Lịch chạy pipeline | **Vercel Cron** (hoặc Supabase scheduled functions) | Gọi các bước pipeline định kỳ |
 | Tóm tắt + dịch | **Claude API (Haiku 4.5)** | Rẻ, nhanh, đủ chất cho tóm tắt/dịch tiếng Việt |
-| Embedding | **OpenAI `text-embedding-3-small`** | Anthropic không có API embedding; bản small rất rẻ, đủ tốt cho tin tiếng Anh |
+| Embedding | **Model local (Transformers.js, `Xenova/multilingual-e5-small`, 384 chiều)** | Chạy ngay trên máy/server, **miễn phí, không cần API key**; đủ tốt cho gom cụm |
 | X & TikTok | **Apify** (actor pay-per-result) | Hai nền đóng; Apify ổn định + rẻ hơn API chính thức nhiều, có since_id/maxItems để tiết kiệm (§13) |
 
-> Cần 3 API key: Claude (tóm tắt/dịch), OpenAI (embedding), **Apify** (X + TikTok).
-> Nguồn free dùng credential riêng: YouTube Data API key, Reddit API (client
-> id/secret). Báo chí qua RSS không cần key.
+> Cần 2 API key: Claude (tóm tắt/dịch) và **Apify** (X + TikTok). **Embedding chạy
+> local nên KHÔNG cần key.** Nguồn free dùng credential riêng: YouTube Data API
+> key, Reddit API (client id/secret). Báo chí qua RSS không cần key.
 
 ---
 
@@ -78,7 +78,7 @@ Post mới → chuẩn hóa → embedding (EN) → lọc thô theo thực thể
 ```
 
 1. **Chuẩn hóa** mọi nguồn về 1 schema `post` chung (xem §6).
-2. **Embedding** title + đoạn mở đầu bằng `text-embedding-3-small`.
+2. **Embedding** title + đoạn mở đầu bằng model local `multilingual-e5-small` (384 chiều).
 3. **Lọc thô (blocking):** chỉ so post mới với các cụm có **chung ≥1 thực thể
    chính** (tên riêng trích từ title) → giảm số phép so, nhanh/rẻ.
 4. **So khớp:** cosine với centroid cụm. `max_sim > T_join (≈0.82)` **và** có
@@ -155,7 +155,7 @@ sources        (id, type[press|youtube|reddit|x|tiktok], name,
 
 posts          (id, source_id, source_type, external_id, title, text, url, author,
                 published_at, lang, metrics jsonb, entities text[],
-                embedding vector(1536), cluster_id, fetched_at)
+                embedding vector(384), cluster_id, fetched_at)
                 -- metrics: { views, upvotes, comments, likes, reposts }
                 -- embedding/entities/cluster_id: CHỈ dùng cho source_type=press
 
