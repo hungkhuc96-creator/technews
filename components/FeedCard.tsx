@@ -18,6 +18,13 @@ export function FeedCard({ item, now }: { item: FeedItem; now?: Date }) {
       <h3 className="card-title">
         <a href={item.url} target="_blank" rel="noopener noreferrer">{item.title}</a>
       </h3>
+      {item.bullets.length > 0 && (
+        <ul className="card-bullets">
+          {item.bullets.map((b, i) => (
+            <li key={i}>{b}</li>
+          ))}
+        </ul>
+      )}
       <div className="card-foot">
         {!hot && <span>{sourceLabel(item.nSources)}</span>}
         <span>Mở cụm tin →</span>

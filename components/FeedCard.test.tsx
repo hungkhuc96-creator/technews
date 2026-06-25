@@ -15,6 +15,8 @@ const item: FeedItem = {
   nSources: 7,
   sourceTypes: ['press'],
   heat: 0.5,
+  summary: 'Tóm tắt tiếng Việt.',
+  bullets: ['Ý chính một', 'Ý chính hai'],
 };
 
 describe('FeedCard', () => {
@@ -24,6 +26,12 @@ describe('FeedCard', () => {
     expect(screen.getByText(/The Verge/)).toBeDefined();
     expect(screen.getByText(/7 nguồn đưa tin/)).toBeDefined();
     expect(screen.getByText(/1 giờ trước/)).toBeDefined();
+  });
+
+  it('hiển thị các bullet tóm tắt tiếng Việt', () => {
+    render(<FeedCard item={item} now={new Date('2026-06-24T12:00:00.000Z')} />);
+    expect(screen.getByText('Ý chính một')).toBeDefined();
+    expect(screen.getByText('Ý chính hai')).toBeDefined();
   });
 
   it('tiêu đề là link tới bài gốc, mở tab mới', () => {

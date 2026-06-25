@@ -9,6 +9,8 @@ export interface FeedItem {
   nSources: number;
   sourceTypes: string[];
   heat: number;
+  summary: string | null;
+  bullets: string[];
 }
 
 export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedItem[]> {
@@ -33,6 +35,15 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
 
   const postById = new Map((posts ?? []).map((p: any) => [p.id, p]));
 
+  const clusterIds = (clusters ?? []).map((c) => c.id);
+  const { data: summaries } = clusterIds.length
+    ? await client
+        .from('cluster_summaries')
+        .select('cluster_id, summary_vi, bullets_vi')
+        .in('cluster_id', clusterIds)
+    : { data: [] as any[] };
+  const sumById = new Map((summaries ?? []).map((s: any) => [s.cluster_id, s]));
+
   return (clusters ?? [])
     .map((c) => {
       const p = postById.get(c.representative_post_id);
@@ -40,6 +51,7 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
       const sourceName = Array.isArray(p.sources)
         ? (p.sources[0]?.name ?? null)
         : (p.sources?.name ?? null);
+      const sum = sumById.get(c.id);
       return {
         clusterId: c.id,
         title: p.title,
@@ -49,6 +61,8 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
         nSources: c.n_sources,
         sourceTypes: c.source_types ?? [],
         heat: c.heat_score,
+        summary: sum?.summary_vi ?? null,
+        bullets: Array.isArray(sum?.bullets_vi) ? sum.bullets_vi : [],
       } satisfies FeedItem;
     })
     .filter((x): x is FeedItem => x !== null);

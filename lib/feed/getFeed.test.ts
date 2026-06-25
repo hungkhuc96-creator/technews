@@ -34,9 +34,18 @@ describe('getFeed', () => {
       status: 'open', representative_post_id: rep!.id,
     }).select('id').single();
     coldId = cold.data!.id;
+
+    await client.from('cluster_summaries').upsert({
+      cluster_id: hotId,
+      summary_vi: 'Tóm tắt nóng.',
+      bullets_vi: ['Điểm 1', 'Điểm 2'],
+      input_hash: 'h',
+      generated_at: new Date().toISOString(),
+    }, { onConflict: 'cluster_id' });
   });
 
   afterAll(async () => {
+    await client.from('cluster_summaries').delete().in('cluster_id', [hotId, coldId]);
     await client.from('clusters').delete().in('id', [hotId, coldId]);
     await client.from('posts').delete().like('url', 'https://example.com/%');
     await client.from('sources').delete().like('name', 'F-%');
@@ -51,5 +60,7 @@ describe('getFeed', () => {
     expect(items[idx].title).toBe('Tin nóng test');
     expect(items[idx].sourceName).toBe('F-One');
     expect(items[idx].nSources).toBe(9);
+    expect(items[idx].summary).toBe('Tóm tắt nóng.');
+    expect(items[idx].bullets).toEqual(['Điểm 1', 'Điểm 2']);
   });
 });
