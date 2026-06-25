@@ -28,6 +28,24 @@ describe('ingestPress', () => {
     expect(inserted[0].sourceName).toBe('The Verge');
   });
 
+  it('lọc bỏ tin deals, chỉ ghi tin thường', async () => {
+    const dealXml = `<?xml version="1.0"?><rss version="2.0"><channel><title>T</title>
+      <item><title>Best Prime Day deals on laptops</title><link>https://t/a</link><guid>a</guid><pubDate>Tue, 23 Jun 2026 04:00:00 GMT</pubDate></item>
+      <item><title>Apple announces iOS 27</title><link>https://t/b</link><guid>b</guid><pubDate>Tue, 23 Jun 2026 04:00:00 GMT</pubDate></item>
+      </channel></rss>`;
+    const inserted: NormalizedPost[] = [];
+    const result = await ingestPress(
+      [{ name: 'T', feedUrl: 'https://t/feed' }],
+      {
+        fetchImpl: (async () => new Response(dealXml, { status: 200 })) as typeof fetch,
+        upsert: async (posts) => { inserted.push(...posts); return posts.length; },
+      },
+    );
+    expect(result.fetched).toBe(1);
+    expect(inserted).toHaveLength(1);
+    expect(inserted[0].title).toBe('Apple announces iOS 27');
+  });
+
   it('một nguồn lỗi thì bỏ qua, không làm hỏng toàn bộ (degrade)', async () => {
     const result = await ingestPress(
       [
