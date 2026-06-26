@@ -30,6 +30,18 @@ describe('getFeed', () => {
     }).select('id').single();
     hotId = hot.data!.id;
 
+    // f1 thuộc cụm nóng; thêm bài CẬP NHẬT mới hơn để kiểm tra updatedAt = bài mới nhất
+    await client.from('posts').update({ cluster_id: hotId }).eq('id', rep!.id);
+    await upsertPosts(client, [
+      {
+        sourceType: 'press', sourceName: 'F-Two', externalId: 'f2',
+        title: 'Bài cập nhật', text: '', url: 'https://example.com/f2',
+        author: null, publishedAt: '2026-06-26T00:00:00.000Z', lang: null, metrics: {},
+        imageUrl: null,
+      },
+    ]);
+    await client.from('posts').update({ cluster_id: hotId }).eq('url', 'https://example.com/f2');
+
     const cold = await client.from('clusters').insert({
       topic: '__feed_test__', n_sources: 1, post_count: 1, heat_score: 0.1,
       status: 'open', representative_post_id: rep!.id,
@@ -54,7 +66,8 @@ describe('getFeed', () => {
   });
 
   it('trả các cụm xếp theo độ nóng giảm dần, kèm tin đại diện', async () => {
-    const items = await getFeed(client, 30);
+    // Limit cao để cụm test không bị dữ liệu thật trong DB đẩy ra ngoài.
+    const items = await getFeed(client, 1000);
     const idx = items.findIndex((i) => i.clusterId === hotId);
     const idxCold = items.findIndex((i) => i.clusterId === coldId);
     expect(idx).toBeGreaterThanOrEqual(0);
@@ -66,5 +79,12 @@ describe('getFeed', () => {
     expect(items[idx].bullets).toEqual(['Điểm 1', 'Điểm 2']);
     expect(items[idx].titleVi).toBe('Tiêu đề nóng');
     expect(items[idx].imageUrl).toBe('https://example.com/thumb.jpg');
+  });
+
+  it('updatedAt phản ánh thời điểm bài MỚI NHẤT trong cụm (không phải bài đại diện)', async () => {
+    const items = await getFeed(client, 30);
+    const it = items.find((i) => i.clusterId === hotId)!;
+    expect(new Date(it.updatedAt!).toISOString()).toBe('2026-06-26T00:00:00.000Z'); // bài cập nhật
+    expect(new Date(it.publishedAt).toISOString()).toBe('2026-06-24T00:00:00.000Z'); // bài đại diện cũ
   });
 });

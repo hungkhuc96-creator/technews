@@ -9,6 +9,9 @@ export function FeedCard({ item, now }: { item: FeedItem; now?: Date }) {
   const icon = SOURCE_ICON[item.sourceTypes[0] ?? 'press'] ?? '📰';
   const hot = item.nSources >= 3;
   const displayTitle = item.titleVi ?? item.title;
+  // Cụm có bài mới hơn bài đại diện → hiện giờ bài mới nhất kèm nhãn "cập nhật".
+  const isUpdated = !!item.updatedAt && item.updatedAt !== item.publishedAt;
+  const timeStamp = item.updatedAt ?? item.publishedAt;
   return (
     <article className="card">
       {item.imageUrl && (
@@ -18,7 +21,7 @@ export function FeedCard({ item, now }: { item: FeedItem; now?: Date }) {
       <div className="card-meta">
         <span className="chip">{icon} {item.sourceName ?? 'Nguồn'}</span>
         {hot && <span className="chip chip-heat">🔥 {sourceLabel(item.nSources)}</span>}
-        <span>· {relativeTime(item.publishedAt, now)}</span>
+        <span>· {isUpdated ? 'cập nhật ' : ''}{relativeTime(timeStamp, now)}</span>
       </div>
       <h3 className="card-title">
         <a href={item.url} target="_blank" rel="noopener noreferrer">{displayTitle}</a>

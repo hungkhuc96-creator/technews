@@ -8,6 +8,7 @@ export interface FeedItem {
   url: string;
   sourceName: string | null;
   publishedAt: string;
+  updatedAt: string | null;
   nSources: number;
   sourceTypes: string[];
   heat: number;
@@ -62,6 +63,19 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
     if (!imageByCluster.has(r.cluster_id)) imageByCluster.set(r.cluster_id, r.image_url);
   }
 
+  // Thời điểm bài MỚI NHẤT mỗi cụm — giống cách runScoring tính "độ tươi".
+  // Thẻ sẽ hiện cái này ("cập nhật X giờ trước") thay vì ngày bài đại diện (bài gốc).
+  const { data: clusterPosts } = clusterIds.length
+    ? await client.from('posts').select('cluster_id, published_at').in('cluster_id', clusterIds)
+    : { data: [] as any[] };
+  const newestByCluster = new Map<string, string>();
+  for (const r of clusterPosts ?? []) {
+    const prev = newestByCluster.get(r.cluster_id);
+    if (!prev || new Date(r.published_at) > new Date(prev)) {
+      newestByCluster.set(r.cluster_id, r.published_at);
+    }
+  }
+
   const pressItems = (clusters ?? [])
     .map((c) => {
       const p = postById.get(c.representative_post_id);
@@ -76,6 +90,7 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
         url: p.url,
         sourceName,
         publishedAt: p.published_at,
+        updatedAt: newestByCluster.get(c.id) ?? null,
         nSources: c.n_sources,
         sourceTypes: c.source_types ?? [],
         heat: c.heat_score,
@@ -118,6 +133,7 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
       url: p.url,
       sourceName: sName,
       publishedAt: p.published_at,
+      updatedAt: null,
       nSources: 1,
       sourceTypes: [p.source_type],
       heat: rawHeat,

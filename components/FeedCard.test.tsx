@@ -12,6 +12,7 @@ const item: FeedItem = {
   url: 'https://example.com/gpt',
   sourceName: 'The Verge',
   publishedAt: '2026-06-24T11:00:00.000Z',
+  updatedAt: null,
   nSources: 7,
   sourceTypes: ['press'],
   heat: 0.5,
@@ -28,6 +29,17 @@ describe('FeedCard', () => {
     expect(screen.getByText(/The Verge/)).toBeDefined();
     expect(screen.getByText(/7 nguồn đưa tin/)).toBeDefined();
     expect(screen.getByText(/1 giờ trước/)).toBeDefined();
+  });
+
+  it('hiển thị "cập nhật" theo bài MỚI NHẤT khi cụm có bài mới hơn bài đại diện', () => {
+    render(
+      <FeedCard
+        item={{ ...item, publishedAt: '2026-06-20T12:00:00.000Z', updatedAt: '2026-06-24T11:00:00.000Z' }}
+        now={new Date('2026-06-24T12:00:00.000Z')}
+      />,
+    );
+    // dùng giờ của bài cập nhật (1 giờ trước), không phải bài đại diện (4 ngày trước)
+    expect(screen.getByText(/cập nhật 1 giờ trước/)).toBeDefined();
   });
 
   it('hiển thị các bullet tóm tắt tiếng Việt', () => {
