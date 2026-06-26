@@ -22,3 +22,7 @@ yarn-error.log*
 # Editor
 .vscode/
 .idea/
+
+# Next.js / TS build artifacts
+next-env.d.ts
+*.tsbuildinfo
