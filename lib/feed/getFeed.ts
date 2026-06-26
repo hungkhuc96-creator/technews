@@ -129,5 +129,6 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
     candidates.push({ item, bucket: p.source_type, rawHeat });
   }
 
-  return rankCandidates(candidates, limit);
+  // maxConsecutive=3: không quá 3 card cùng loại liên tiếp → trộn nguồn rõ hơn.
+  return rankCandidates(candidates, limit, 3);
 }
