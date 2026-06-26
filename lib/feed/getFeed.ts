@@ -1,4 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { rankCandidates, type RankCandidate } from './rank';
+import { engagementHeat, recencyHeat } from '../score/heat';
 
 export interface FeedItem {
   clusterId: string;
@@ -60,7 +62,7 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
     if (!imageByCluster.has(r.cluster_id)) imageByCluster.set(r.cluster_id, r.image_url);
   }
 
-  return (clusters ?? [])
+  const pressItems = (clusters ?? [])
     .map((c) => {
       const p = postById.get(c.representative_post_id);
       if (!p) return null;
@@ -84,4 +86,48 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
       } satisfies FeedItem;
     })
     .filter((x): x is FeedItem => x !== null);
+
+  // Ứng viên cụm báo chí
+  const candidates: RankCandidate<FeedItem>[] = pressItems.map((it) => ({
+    item: it,
+    bucket: 'press',
+    rawHeat: it.heat,
+  }));
+
+  // Ứng viên bài ĐỨNG RIÊNG (YouTube/Reddit/X/TikTok) — 7 ngày gần nhất
+  const now = Date.now();
+  const since = new Date(now - 7 * 24 * 3600 * 1000).toISOString();
+  const { data: standalone } = await client
+    .from('posts')
+    .select('id, source_type, title, url, published_at, image_url, metrics, sources(name)')
+    .neq('source_type', 'press')
+    .gte('published_at', since)
+    .order('published_at', { ascending: false })
+    .limit(200);
+
+  for (const p of (standalone ?? []) as any[]) {
+    const ageHours = Math.max(0, (now - new Date(p.published_at).getTime()) / 3_600_000);
+    const m = (p.metrics ?? {}) as { views?: number; upvotes?: number };
+    const eng = Number(m.views ?? m.upvotes ?? 0);
+    const rawHeat =
+      p.source_type === 'x' || eng <= 0 ? recencyHeat(ageHours) : engagementHeat(eng, ageHours);
+    const sName = Array.isArray(p.sources) ? (p.sources[0]?.name ?? null) : (p.sources?.name ?? null);
+    const item: FeedItem = {
+      clusterId: p.id,
+      title: p.title,
+      url: p.url,
+      sourceName: sName,
+      publishedAt: p.published_at,
+      nSources: 1,
+      sourceTypes: [p.source_type],
+      heat: rawHeat,
+      titleVi: null,
+      imageUrl: p.image_url ?? null,
+      summary: null,
+      bullets: [],
+    };
+    candidates.push({ item, bucket: p.source_type, rawHeat });
+  }
+
+  return rankCandidates(candidates, limit);
 }
