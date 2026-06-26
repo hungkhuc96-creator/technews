@@ -18,6 +18,7 @@ describe('getFeed', () => {
         sourceType: 'press', sourceName: 'F-One', externalId: 'f1',
         title: 'Tin nóng test', text: '', url: 'https://example.com/f1',
         author: null, publishedAt: '2026-06-24T00:00:00.000Z', lang: null, metrics: {},
+        imageUrl: 'https://example.com/thumb.jpg',
       },
     ]);
     const { data: rep } = await client
@@ -37,6 +38,7 @@ describe('getFeed', () => {
 
     await client.from('cluster_summaries').upsert({
       cluster_id: hotId,
+      title_vi: 'Tiêu đề nóng',
       summary_vi: 'Tóm tắt nóng.',
       bullets_vi: ['Điểm 1', 'Điểm 2'],
       input_hash: 'h',
@@ -62,5 +64,7 @@ describe('getFeed', () => {
     expect(items[idx].nSources).toBe(9);
     expect(items[idx].summary).toBe('Tóm tắt nóng.');
     expect(items[idx].bullets).toEqual(['Điểm 1', 'Điểm 2']);
+    expect(items[idx].titleVi).toBe('Tiêu đề nóng');
+    expect(items[idx].imageUrl).toBe('https://example.com/thumb.jpg');
   });
 });

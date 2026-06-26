@@ -8,7 +8,7 @@ let clusterId: string;
 const URL = 'https://example.com/sum-1';
 
 const fakeChat = async () =>
-  '{"summary":"Bản tóm tắt thử nghiệm.","bullets":["Ý một","Ý hai"]}';
+  '{"title":"Tiêu đề thử","summary":"Bản tóm tắt thử nghiệm.","bullets":["Ý một","Ý hai"]}';
 
 describe('runSummarize', () => {
   beforeAll(async () => {
@@ -41,7 +41,8 @@ describe('runSummarize', () => {
     const r = await runSummarize(client, fakeChat, { limit: 1 });
     expect(r.summarized).toBeGreaterThanOrEqual(1);
     const { data } = await client
-      .from('cluster_summaries').select('summary_vi, bullets_vi').eq('cluster_id', clusterId).single();
+      .from('cluster_summaries').select('title_vi, summary_vi, bullets_vi').eq('cluster_id', clusterId).single();
+    expect(data!.title_vi).toBe('Tiêu đề thử');
     expect(data!.summary_vi).toBe('Bản tóm tắt thử nghiệm.');
     expect(data!.bullets_vi).toEqual(['Ý một', 'Ý hai']);
   }, 60000);

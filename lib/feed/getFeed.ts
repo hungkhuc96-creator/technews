@@ -9,6 +9,8 @@ export interface FeedItem {
   nSources: number;
   sourceTypes: string[];
   heat: number;
+  titleVi: string | null;
+  imageUrl: string | null;
   summary: string | null;
   bullets: string[];
 }
@@ -29,7 +31,7 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
   const { data: posts } = repIds.length
     ? await client
         .from('posts')
-        .select('id, title, url, published_at, sources(name)')
+        .select('id, title, url, published_at, image_url, sources(name)')
         .in('id', repIds)
     : { data: [] as any[] };
 
@@ -39,7 +41,7 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
   const { data: summaries } = clusterIds.length
     ? await client
         .from('cluster_summaries')
-        .select('cluster_id, summary_vi, bullets_vi')
+        .select('cluster_id, title_vi, summary_vi, bullets_vi')
         .in('cluster_id', clusterIds)
     : { data: [] as any[] };
   const sumById = new Map((summaries ?? []).map((s: any) => [s.cluster_id, s]));
@@ -61,6 +63,8 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
         nSources: c.n_sources,
         sourceTypes: c.source_types ?? [],
         heat: c.heat_score,
+        titleVi: sum?.title_vi ?? null,
+        imageUrl: p.image_url ?? null,
         summary: sum?.summary_vi ?? null,
         bullets: Array.isArray(sum?.bullets_vi) ? sum.bullets_vi : [],
       } satisfies FeedItem;

@@ -54,6 +54,7 @@ export async function runSummarize(
     await client.from('cluster_summaries').upsert(
       {
         cluster_id: cl.id,
+        title_vi: s.titleVi,
         summary_vi: s.summary,
         bullets_vi: s.bullets,
         input_hash: inputHash,

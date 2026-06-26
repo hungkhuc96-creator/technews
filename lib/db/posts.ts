@@ -42,6 +42,7 @@ export async function upsertPosts(
     published_at: p.publishedAt,
     lang: p.lang,
     metrics: p.metrics,
+    image_url: p.imageUrl ?? null,
   }));
 
   const { data, error } = await client
