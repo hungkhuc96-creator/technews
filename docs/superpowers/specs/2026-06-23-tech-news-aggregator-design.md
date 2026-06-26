@@ -50,12 +50,12 @@ Việt dạng bullet, biết có bao nhiêu nguồn đưa tin, và bình luận 
 | Auth & bình luận | **Supabase Auth + bảng comments** | Không phải tự dựng đăng nhập |
 | Cập nhật realtime | **Supabase Realtime** | Banner "tin mới" không cần tự viết websocket |
 | Lịch chạy pipeline | **Vercel Cron** (hoặc Supabase scheduled functions) | Gọi các bước pipeline định kỳ |
-| Tóm tắt + dịch | **GLM 5.2 (Z.ai, API tương thích OpenAI)** | Rẻ (~$0.95/$3 mỗi triệu token), tiếng Việt tốt; gọi qua client OpenAI-compatible → dễ đổi nhà cung cấp |
+| Tóm tắt + dịch | **Claude Haiku 4.5** (Anthropic SDK) | Rẻ ($1/$5 mỗi triệu token), nhanh, tiếng Việt tốt; gọi qua `ChatFn` provider-neutral → dễ đổi nhà cung cấp |
 | Embedding | **Model local (Transformers.js, `Xenova/multilingual-e5-small`, 384 chiều)** | Chạy ngay trên máy/server, **miễn phí, không cần API key**; đủ tốt cho gom cụm |
 | X & TikTok | **Apify** (actor pay-per-result) | Hai nền đóng; Apify ổn định + rẻ hơn API chính thức nhiều, có since_id/maxItems để tiết kiệm (§13) |
 
-> Cần 2 API key: **GLM/Z.ai** (tóm tắt/dịch) và **Apify** (X + TikTok). **Embedding
-> chạy local nên KHÔNG cần key.** Nguồn free dùng credential riêng: YouTube Data API
+> Cần 2 API key: **Anthropic/Claude** (tóm tắt/dịch) và **Apify** (X + TikTok).
+> **Embedding chạy local nên KHÔNG cần key.** Nguồn free dùng credential riêng: YouTube Data API
 > key, Reddit API (client id/secret). Báo chí qua RSS không cần key.
 
 ---
@@ -192,7 +192,7 @@ Mỗi bước là một đơn vị độc lập, giao tiếp qua bảng Postgres
    `cluster_id`, cập nhật `n_sources`, đại diện. YouTube/Reddit/X/TikTok bỏ qua bước này.
 4. **Score**: tính lại `heat_score` cho các cụm đang mở.
 5. **Summarize** (tiết kiệm chi phí — **chỉ cụm lên feed**):
-   - Cụm vượt ngưỡng heat / lọt top → gọi GLM 5.2 đọc cả cụm → xuất tóm tắt tiếng
+   - Cụm vượt ngưỡng heat / lọt top → gọi Claude Haiku đọc cả cụm → xuất tóm tắt tiếng
      Việt (2–3 câu) + bullet → lưu `cluster_summaries`.
    - Chỉ chạy lại khi cụm đổi đáng kể (input_hash thay đổi, vd thêm nhiều nguồn).
 6. **Serve**: Next.js API đọc cụm + tóm tắt + điểm nóng → trả feed cho UI.
@@ -238,7 +238,7 @@ Mỗi bước là một đơn vị độc lập, giao tiếp qua bảng Postgres
 | `enrich` | Trích thực thể + embedding | OpenAI |
 | `cluster` | Gom post thành cụm | embedding, DB |
 | `score` | Tính heat | DB |
-| `summarize` | Tóm tắt/dịch cụm sang tiếng Việt | GLM 5.2 (Z.ai) |
+| `summarize` | Tóm tắt/dịch cụm sang tiếng Việt | Claude Haiku 4.5 |
 | `web` (Next.js) | Feed UI + bình luận + auth | Supabase |
 
 Mỗi module test được độc lập: cho `post` mẫu → kiểm tra cụm/điểm/tóm tắt đầu ra.

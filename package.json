@@ -11,13 +11,15 @@
     "test:watch": "vitest",
     "ingest:press": "node --env-file=.env.local --import tsx scripts/ingest-press.ts",
     "dev": "next dev",
-    "process:press": "node --env-file=.env.local --import tsx scripts/cluster-score.ts"
+    "process:press": "node --env-file=.env.local --import tsx scripts/cluster-score.ts",
+    "summarize": "node --env-file=.env.local --import tsx scripts/summarize.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.106.0",
     "@supabase/supabase-js": "^2.108.2",
     "@xenova/transformers": "^2.17.2",
     "next": "^16.2.9",

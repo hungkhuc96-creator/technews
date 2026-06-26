@@ -14,7 +14,7 @@
 - Tóm tắt **ở cấp cụm**, CHỈ cho cụm lên feed (top theo `heat_score`) — tiết kiệm chi phí.
 - Đầu ra **tiếng Việt**: `summary` (2–3 câu) + `bullets` (2–3 ý).
 - Cache theo `input_hash` (băm id các bài trong cụm) — chỉ gọi lại GLM khi cụm đổi.
-- LLM gọi qua **API tương thích OpenAI**; cấu hình bằng env `GLM_API_KEY`, `GLM_BASE_URL` (mặc định `https://api.z.ai/api/paas/v4`), `GLM_MODEL` (mặc định `glm-5.2`).
+- LLM gọi qua **Anthropic SDK (Claude Haiku 4.5)**; cấu hình bằng env `ANTHROPIC_API_KEY` (và tùy chọn `CLAUDE_MODEL`, mặc định `claude-haiku-4-5`). `ChatFn` provider-neutral nên đổi nhà cung cấp chỉ là đổi file client.
 - Bản quyền: chỉ tóm tắt + link nguồn; KHÔNG đăng toàn văn.
 - TDD; mỗi task một commit.
 
@@ -546,16 +546,15 @@ Thêm script:
 cd "/Users/thinkview/Desktop/Học vibe code/Technews" && npm pkg set scripts.summarize="node --env-file=.env.local --import tsx scripts/summarize.ts"
 ```
 
-- [ ] **Step 2: Lấy GLM API key (người dùng làm)**
+- [ ] **Step 2: Lấy Anthropic API key (người dùng làm)**
 
-1. Vào **https://z.ai** (hoặc bigmodel.cn) → đăng ký → mục **API Keys** → tạo key.
-2. Thêm vào `.env.local`:
+1. Vào **https://console.anthropic.com** → đăng nhập → **API Keys** → **Create Key**.
+2. Đảm bảo tài khoản có credit (Billing) — tóm tắt mỗi cụm chỉ vài cent.
+3. Thêm vào `.env.local`:
 ```
-GLM_API_KEY=<key của bạn>
-GLM_BASE_URL=https://api.z.ai/api/paas/v4
-GLM_MODEL=glm-5.2
+ANTHROPIC_API_KEY=<key của bạn>
 ```
-(Nếu nhà cung cấp dùng id model khác, sửa `GLM_MODEL` cho khớp — vd `zai-org/GLM-5.2` trên một số cổng.)
+(Tùy chọn `CLAUDE_MODEL=claude-haiku-4-5` — đã là mặc định.)
 
 - [ ] **Step 3: Chạy tóm tắt thật trên các cụm top**
 
