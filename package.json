@@ -12,7 +12,8 @@
     "ingest:press": "node --env-file=.env.local --import tsx scripts/ingest-press.ts",
     "dev": "next dev",
     "process:press": "node --env-file=.env.local --import tsx scripts/cluster-score.ts",
-    "summarize": "node --env-file=.env.local --import tsx scripts/summarize.ts"
+    "summarize": "node --env-file=.env.local --import tsx scripts/summarize.ts",
+    "ingest:youtube": "node --env-file=.env.local --import tsx scripts/ingest-youtube.ts"
   },
   "keywords": [],
   "author": "",
