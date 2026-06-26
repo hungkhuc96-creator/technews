@@ -33,4 +33,10 @@ describe('parsePressFeed', () => {
     const posts = await parsePressFeed(xml, source);
     expect(posts[1].author).toBeNull();
   });
+
+  it('lấy ảnh thumbnail từ media:content; thiếu ảnh → null', async () => {
+    const posts = await parsePressFeed(xml, source);
+    expect(posts[0].imageUrl).toBe('https://cdn.theverge.com/gpt.jpg');
+    expect(posts[1].imageUrl).toBeNull();
+  });
 });

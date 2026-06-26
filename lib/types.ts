@@ -25,4 +25,5 @@ export interface NormalizedPost {
   publishedAt: string; // ISO 8601
   lang: string | null;
   metrics: PostMetrics;
+  imageUrl?: string | null; // thumbnail (báo chí lấy từ RSS)
 }
