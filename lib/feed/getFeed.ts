@@ -46,6 +46,20 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
     : { data: [] as any[] };
   const sumById = new Map((summaries ?? []).map((s: any) => [s.cluster_id, s]));
 
+  // Ảnh cụm: ưu tiên bài đại diện, nếu không có thì lấy ảnh của BẤT KỲ bài nào
+  // trong cụm (tăng độ phủ thumbnail cho cụm nhiều nguồn).
+  const { data: clusterImages } = clusterIds.length
+    ? await client
+        .from('posts')
+        .select('cluster_id, image_url')
+        .in('cluster_id', clusterIds)
+        .not('image_url', 'is', null)
+    : { data: [] as any[] };
+  const imageByCluster = new Map<string, string>();
+  for (const r of clusterImages ?? []) {
+    if (!imageByCluster.has(r.cluster_id)) imageByCluster.set(r.cluster_id, r.image_url);
+  }
+
   return (clusters ?? [])
     .map((c) => {
       const p = postById.get(c.representative_post_id);
@@ -64,7 +78,7 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
         sourceTypes: c.source_types ?? [],
         heat: c.heat_score,
         titleVi: sum?.title_vi ?? null,
-        imageUrl: p.image_url ?? null,
+        imageUrl: p.image_url ?? imageByCluster.get(c.id) ?? null,
         summary: sum?.summary_vi ?? null,
         bullets: Array.isArray(sum?.bullets_vi) ? sum.bullets_vi : [],
       } satisfies FeedItem;
