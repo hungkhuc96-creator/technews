@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+  <title>MKBHD</title>
+  <entry>
+    <id>yt:video:ABC12345xyz</id>
+    <yt:videoId>ABC12345xyz</yt:videoId>
+    <title>Đánh giá nhanh MacBook Pro M5</title>
+    <link rel="alternate" href="https://www.youtube.com/watch?v=ABC12345xyz" />
+    <published>2026-06-23T10:00:00+00:00</published>
+    <media:group>
+      <media:thumbnail url="https://i.ytimg.com/vi/ABC12345xyz/hqdefault.jpg" />
+      <media:community>
+        <media:statistics views="125000" />
+      </media:community>
+    </media:group>
+  </entry>
+  <entry>
+    <id>yt:video:DEF67890uvw</id>
+    <yt:videoId>DEF67890uvw</yt:videoId>
+    <title>So kè RTX 5070 vs RX 9070 XT</title>
+    <link rel="alternate" href="https://www.youtube.com/watch?v=DEF67890uvw" />
+    <published>2026-06-22T08:00:00+00:00</published>
+    <media:group>
+      <media:thumbnail url="https://i.ytimg.com/vi/DEF67890uvw/hqdefault.jpg" />
+    </media:group>
+  </entry>
+</feed>
