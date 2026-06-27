@@ -2,13 +2,13 @@ import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime } from '../lib/feed/format';
 
 // Thẻ HERO vàng cho tin nóng nhất (thường là cụm báo chí nhiều nguồn).
-export function HeroCard({ item, now }: { item: FeedItem; now?: Date }) {
+export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; onOpen?: () => void }) {
   const title = item.titleVi ?? item.title;
   const ts = item.updatedAt ?? item.publishedAt;
   const isUpdated = !!item.updatedAt && item.updatedAt !== item.publishedAt;
   const initial = (item.sourceName ?? 'N').trim().charAt(0).toUpperCase();
   return (
-    <article className="hero">
+    <article className="hero" onClick={onOpen}>
       <span className="hero-flame">🔥</span>
       <div className="hero-meta">
         <span>{item.sourceName ?? 'Nguồn'}</span>
@@ -30,9 +30,7 @@ export function HeroCard({ item, now }: { item: FeedItem; now?: Date }) {
           <span className="savatar" style={{ background: 'var(--accent-ink)', color: 'var(--accent)' }}>{initial}</span>
         </span>
         <span className="hero-srctext">{item.nSources} nguồn đưa tin</span>
-        <a className="hero-btn" href={item.url} target="_blank" rel="noopener noreferrer">
-          Đọc tiếp &amp; bản dịch →
-        </a>
+        <button className="hero-btn" onClick={onOpen}>Đọc tiếp &amp; bản dịch →</button>
       </div>
     </article>
   );

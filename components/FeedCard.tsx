@@ -5,7 +5,7 @@ const SOURCE_ICON: Record<string, string> = {
   press: '📰', youtube: '▶', reddit: '👽', x: '𝕏', tiktok: '🎵',
 };
 
-export function FeedCard({ item, now }: { item: FeedItem; now?: Date }) {
+export function FeedCard({ item, now, onOpen }: { item: FeedItem; now?: Date; onOpen?: () => void }) {
   const icon = SOURCE_ICON[item.sourceTypes[0] ?? 'press'] ?? '📰';
   const hot = item.nSources >= 3;
   const displayTitle = item.titleVi ?? item.title;
@@ -13,7 +13,7 @@ export function FeedCard({ item, now }: { item: FeedItem; now?: Date }) {
   const isUpdated = !!item.updatedAt && item.updatedAt !== item.publishedAt;
   const timeStamp = item.updatedAt ?? item.publishedAt;
   return (
-    <article className="card">
+    <article className="card" onClick={onOpen}>
       {item.imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
         <img className="card-thumb" src={item.imageUrl} alt="" loading="lazy" />
@@ -23,9 +23,7 @@ export function FeedCard({ item, now }: { item: FeedItem; now?: Date }) {
         {hot && <span className="chip chip-heat">🔥 {sourceLabel(item.nSources)}</span>}
         <span>· {isUpdated ? 'cập nhật ' : ''}{relativeTime(timeStamp, now)}</span>
       </div>
-      <h3 className="card-title">
-        <a href={item.url} target="_blank" rel="noopener noreferrer">{displayTitle}</a>
-      </h3>
+      <h3 className="card-title">{displayTitle}</h3>
       {item.bullets.length > 0 && (
         <ul className="card-bullets">
           {item.bullets.map((b, i) => (

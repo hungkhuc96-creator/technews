@@ -62,10 +62,12 @@ describe('FeedCard', () => {
     expect(screen.getByText('OpenAI launches GPT-5.2')).toBeDefined();
   });
 
-  it('tiêu đề là link tới bài gốc, mở tab mới', () => {
-    render(<FeedCard item={item} now={new Date('2026-06-24T12:00:00.000Z')} />);
-    const link = screen.getByRole('link', { name: /GPT-5.2/ }) as HTMLAnchorElement;
-    expect(link.href).toContain('example.com/gpt');
-    expect(link.target).toBe('_blank');
+  it('bấm vào thẻ gọi onOpen (mở panel đọc)', () => {
+    let opened = 0;
+    const { container } = render(
+      <FeedCard item={item} now={new Date('2026-06-24T12:00:00.000Z')} onOpen={() => { opened += 1; }} />,
+    );
+    (container.querySelector('.card') as HTMLElement).click();
+    expect(opened).toBe(1);
   });
 });

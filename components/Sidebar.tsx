@@ -1,8 +1,8 @@
 const NAV = [
-  { icon: '🏠', label: 'Trang chủ', active: true },
-  { icon: '🔥', label: 'Đang nóng', active: false },
-  { icon: '🕐', label: 'Mới nhất', active: false },
-  { icon: '▶', label: 'Video', active: false },
+  { icon: '🏠', label: 'Trang chủ' },
+  { icon: '🔥', label: 'Đang nóng' },
+  { icon: '🕐', label: 'Mới nhất' },
+  { icon: '▶', label: 'Video' },
 ];
 
 const SOURCES: { key: string; icon: string; label: string }[] = [
@@ -24,12 +24,24 @@ const FOLLOWS = [
   { name: 'GSMArena', initial: 'G', color: '#cf2e2e' },
 ];
 
-export function Sidebar({ counts }: { counts: Record<string, number> }) {
+export function Sidebar({
+  counts, activeSource, onSelectSource, activeNav, onSelectNav,
+}: {
+  counts: Record<string, number>;
+  activeSource: string;
+  onSelectSource: (key: string) => void;
+  activeNav: string;
+  onSelectNav: (label: string) => void;
+}) {
   return (
     <aside className="sidebar">
       <nav>
         {NAV.map((n) => (
-          <div key={n.label} className={`nav-item${n.active ? ' active' : ''}`}>
+          <div
+            key={n.label}
+            className={`nav-item${activeNav === n.label ? ' active' : ''}`}
+            onClick={() => onSelectNav(n.label)}
+          >
             <span>{n.icon}</span>
             {n.label}
           </div>
@@ -38,12 +50,19 @@ export function Sidebar({ counts }: { counts: Record<string, number> }) {
 
       <div className="side-title"><span>LỌC NGUỒN</span></div>
       <nav>
-        <div className="src-item active">
+        <div
+          className={`src-item${activeSource === 'all' ? ' active' : ''}`}
+          onClick={() => onSelectSource('all')}
+        >
           <span>◎</span>
           <span className="src-label">Tất cả nguồn</span>
         </div>
         {SOURCES.map((s) => (
-          <div key={s.key} className="src-item">
+          <div
+            key={s.key}
+            className={`src-item${activeSource === s.key ? ' active' : ''}`}
+            onClick={() => onSelectSource(s.key)}
+          >
             <span>{s.icon}</span>
             <span className="src-label">{s.label}</span>
             {counts[s.key] > 0 && <span className="src-badge">{counts[s.key]}</span>}
