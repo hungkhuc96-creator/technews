@@ -11,9 +11,10 @@ interface Tweet {
   retweetCount?: number;
   replyCount?: number;
   likeCount?: number;
+  viewCount?: number;
   isRetweet?: boolean;
   isReply?: boolean;
-  author?: { userName?: string; name?: string };
+  author?: { userName?: string; name?: string; profilePicture?: string };
 }
 
 // Bỏ link t.co (link rút gọn của Twitter) khỏi text + gọn khoảng trắng.
@@ -25,8 +26,10 @@ function cleanText(s: string): string {
 // bài báo nên giữ lại; còn các câu phản ứng kiểu "Amazing"/"Madness" thì bỏ.
 function isJunk(t: Tweet): boolean {
   const raw = t.text ?? '';
+  const cleaned = cleanText(raw);
+  if (cleaned.length === 0) return true; // tweet chỉ có ảnh/link, không có chữ
   const hasLink = /https?:\/\//.test(raw);
-  return !hasLink && cleanText(raw).length < 40;
+  return !hasLink && cleaned.length < 40;
 }
 
 // Chuẩn hóa tweet → NormalizedPost. Bỏ retweet, reply và tweet rác (giữ tín hiệu gốc).
@@ -41,6 +44,7 @@ export function normalizeTweets(items: unknown[]): NormalizedPost[] {
       if (t.likeCount) metrics.likes = t.likeCount;
       if (t.retweetCount) metrics.reposts = t.retweetCount;
       if (t.replyCount) metrics.comments = t.replyCount;
+      if (t.viewCount) metrics.views = t.viewCount;
       return {
         sourceType: 'x',
         sourceName: `@${handle}`,
@@ -52,7 +56,7 @@ export function normalizeTweets(items: unknown[]): NormalizedPost[] {
         publishedAt: new Date(t.createdAt ?? Date.now()).toISOString(),
         lang: t.lang ?? null,
         metrics,
-        imageUrl: null,
+        imageUrl: t.author?.profilePicture ?? null, // dùng làm avatar X trên thẻ
       } satisfies NormalizedPost;
     });
 }

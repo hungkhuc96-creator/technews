@@ -15,6 +15,8 @@ const item: FeedItem = {
   updatedAt: null,
   nSources: 7,
   sources: [],
+  authorName: null,
+  metrics: {},
   sourceTypes: ['press'],
   heat: 0.5,
   titleVi: 'OpenAI ra mắt GPT-5.2',
@@ -43,10 +45,39 @@ describe('FeedCard', () => {
     expect(screen.getByText(/cập nhật 1 giờ trước/)).toBeDefined();
   });
 
-  it('hiển thị các bullet tóm tắt tiếng Việt', () => {
-    render(<FeedCard item={item} now={new Date('2026-06-24T12:00:00.000Z')} />);
+  it('thẻ báo hiển thị đoạn tóm tắt; nếu không có thì hiện bullet', () => {
+    const { rerender } = render(<FeedCard item={item} now={new Date('2026-06-24T12:00:00.000Z')} />);
+    expect(screen.getByText('Tóm tắt tiếng Việt.')).toBeDefined();
+    rerender(<FeedCard item={{ ...item, summary: null }} now={new Date('2026-06-24T12:00:00.000Z')} />);
     expect(screen.getByText('Ý chính một')).toBeDefined();
-    expect(screen.getByText('Ý chính hai')).toBeDefined();
+  });
+
+  it('footer luôn có "Xem tin" + nhãn số nguồn (thẻ báo)', () => {
+    const { container } = render(<FeedCard item={item} now={new Date('2026-06-24T12:00:00.000Z')} />);
+    expect(container.querySelector('.see')?.textContent).toContain('Xem tin');
+    expect(screen.getByText(/7 nguồn đưa tin/)).toBeDefined();
+  });
+
+  it('thẻ X: hiện tweet, avatar và lượt tương tác', () => {
+    const x: FeedItem = {
+      ...item, sourceTypes: ['x'], sourceName: '@MKBHD', authorName: 'Marques Brownlee',
+      title: 'Tweet về M5', titleVi: null, summary: null, bullets: [],
+      imageUrl: 'https://pbs.twimg.com/a.jpg', metrics: { likes: 3400, reposts: 120, comments: 45 },
+    };
+    const { container } = render(<FeedCard item={x} now={new Date('2026-06-24T12:00:00.000Z')} />);
+    expect(screen.getByText('Tweet về M5')).toBeDefined();
+    expect(screen.getByText(/Marques Brownlee/)).toBeDefined();
+    expect(container.querySelector('img.x-avatar')).not.toBeNull();
+    expect(screen.getByText(/3,4k/)).toBeDefined(); // likes rút gọn
+  });
+
+  it('thẻ YouTube: hiện lượt xem', () => {
+    const yt: FeedItem = {
+      ...item, sourceTypes: ['youtube'], sourceName: 'MKBHD', titleVi: 'Video M5',
+      summary: null, bullets: [], metrics: { views: 1200000 },
+    };
+    render(<FeedCard item={yt} now={new Date('2026-06-24T12:00:00.000Z')} />);
+    expect(screen.getByText(/1,2M lượt xem/)).toBeDefined();
   });
 
   it('hiển thị thumbnail khi có ảnh', () => {

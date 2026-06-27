@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { rankCandidates, type RankCandidate } from './rank';
 import { engagementHeat, recencyHeat } from '../score/heat';
+import type { PostMetrics } from '../types';
 
 export interface FeedItem {
   clusterId: string;
@@ -11,6 +12,8 @@ export interface FeedItem {
   updatedAt: string | null;
   nSources: number;
   sources: { initial: string; color: string }[];
+  authorName: string | null; // tên hiển thị (vd tài khoản X)
+  metrics: PostMetrics;       // like/repost/comment/views cho X, YouTube…
   sourceTypes: string[];
   heat: number;
   titleVi: string | null;
@@ -108,6 +111,8 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
         updatedAt: newestByCluster.get(c.id) ?? null,
         nSources: c.n_sources,
         sources: [...(sourceNamesByCluster.get(c.id) ?? [])].slice(0, 4).map(avatarFor),
+        authorName: null,
+        metrics: {},
         sourceTypes: c.source_types ?? [],
         heat: c.heat_score,
         titleVi: sum?.title_vi ?? null,
@@ -130,7 +135,7 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
   const since = new Date(now - 7 * 24 * 3600 * 1000).toISOString();
   const { data: standalone } = await client
     .from('posts')
-    .select('id, source_type, title, url, published_at, image_url, metrics, sources(name)')
+    .select('id, source_type, title, url, published_at, image_url, metrics, author, sources(name)')
     .neq('source_type', 'press')
     .gte('published_at', since)
     .order('published_at', { ascending: false })
@@ -152,6 +157,8 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
       updatedAt: null,
       nSources: 1,
       sources: sName ? [avatarFor(sName)] : [],
+      authorName: p.author ?? null,
+      metrics: (p.metrics ?? {}) as PostMetrics,
       sourceTypes: [p.source_type],
       heat: rawHeat,
       titleVi: null,

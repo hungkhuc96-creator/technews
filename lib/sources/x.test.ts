@@ -19,6 +19,7 @@ describe('normalizeTweets', () => {
     const out = normalizeTweets([
       { ...base, id: 'a', text: 'Amazing 🤩' },                                   // rác → bỏ
       { ...base, id: 'b', text: 'Madness' },                                       // rác → bỏ
+      { ...base, id: 'e', text: 'https://t.co/onlylink' },                          // chỉ có link, rỗng chữ → bỏ
       { ...base, id: 'c', text: 'Tin lớn https://t.co/xyz' },                      // ngắn NHƯNG có link → giữ
       { ...base, id: 'd', text: 'Apple vừa công bố dòng MacBook Pro M5 hoàn toàn mới' }, // dài → giữ
     ]);

@@ -13,3 +13,11 @@ export function relativeTime(iso: string, now: Date = new Date()): string {
 export function sourceLabel(nSources: number): string {
   return nSources <= 1 ? '1 nguồn' : `${nSources} nguồn đưa tin`;
 }
+
+// 3400 → "3,4k" · 1.200.000 → "1,2M" (rút gọn số tương tác/lượt xem).
+export function compactNumber(n: number): string {
+  if (!Number.isFinite(n) || n <= 0) return '0';
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '').replace('.', ',') + 'M';
+  if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, '').replace('.', ',') + 'k';
+  return String(n);
+}
