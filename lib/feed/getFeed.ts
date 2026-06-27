@@ -146,8 +146,10 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
     const ageHours = Math.max(0, (now - new Date(p.published_at).getTime()) / 3_600_000);
     const m = (p.metrics ?? {}) as { views?: number; upvotes?: number };
     const eng = Number(m.views ?? m.upvotes ?? 0);
-    const rawHeat =
+    let rawHeat =
       p.source_type === 'x' || eng <= 0 ? recencyHeat(ageHours) : engagementHeat(eng, ageHours);
+    // Tweet có ẢNH/VIDEO → ưu tiên nhẹ để bài trực quan của X nổi lên trang chính.
+    if (p.source_type === 'x' && p.image_url) rawHeat *= 1.5;
     const sName = Array.isArray(p.sources) ? (p.sources[0]?.name ?? null) : (p.sources?.name ?? null);
     const item: FeedItem = {
       clusterId: p.id,
