@@ -17,7 +17,9 @@ describe('ingestX', () => {
       upsert: async (p) => { inserted.push(...p); return p.length; },
       maxItems: 30,
     });
-    expect(seenInput.twitterHandles).toEqual(['MKBHD', 'verge', 'sama']);
+    expect(seenInput.searchTerms[0]).toContain('from:MKBHD');
+    expect(seenInput.searchTerms[0]).toContain('from:verge');
+    expect(seenInput.searchTerms[0]).toContain('-filter:retweets');
     expect(seenInput.maxItems).toBe(30);
     expect(seenInput.sort).toBe('Latest');
     expect(result.fetched).toBe(1);   // 3 item nhưng chỉ 1 tweet gốc

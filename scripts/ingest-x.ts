@@ -4,7 +4,8 @@ import { ingestX } from '../lib/sources/ingestX.js';
 import { runActorGetItems } from '../lib/sources/apifyClient.js';
 import { X_HANDLES } from '../lib/sources/xSeeds.js';
 
-const ACTOR = 'apidojo~tweet-scraper';
+// kaitoeasyapi: pay-per-result rẻ, CHẠY ĐƯỢC trên gói Apify Free (apidojo chặn Free).
+const ACTOR = 'kaitoeasyapi~twitter-x-data-tweet-scraper-pay-per-result-cheapest';
 
 async function main() {
   const token = process.env.APIFY_TOKEN;
@@ -15,7 +16,6 @@ async function main() {
     runActor: (input) => runActorGetItems(ACTOR, input, token),
     upsert: (posts) => upsertPosts(client, posts),
     maxItems: 40,   // giữ thấp để tiết kiệm credit Apify
-    sinceDays: 2,   // chỉ tweet 2 ngày gần đây
   });
   console.log('Ingest X xong:', result);
 }

@@ -5,7 +5,6 @@ export interface XIngestDeps {
   runActor: (input: Record<string, unknown>) => Promise<unknown[]>;
   upsert: (posts: NormalizedPost[]) => Promise<number>;
   maxItems?: number;  // trần kết quả — giữ THẤP để tiết kiệm chi phí Apify (§13)
-  sinceDays?: number; // chỉ lấy tweet trong N ngày gần đây (lọc theo ngày)
 }
 
 export async function ingestX(
@@ -13,15 +12,13 @@ export async function ingestX(
   deps: XIngestDeps,
 ): Promise<{ fetched: number; inserted: number; error?: string }> {
   const maxItems = deps.maxItems ?? handles.length * 3;
+  // 1 query Twitter gộp mọi handle (OR) + bỏ retweet/reply ngay tại nguồn → ÍT kết quả, rẻ.
+  const query = `(${handles.map((h) => `from:${h}`).join(' OR ')}) -filter:retweets -filter:replies`;
   const input: Record<string, unknown> = {
-    twitterHandles: handles,
-    maxItems,
+    searchTerms: [query],
     sort: 'Latest',
+    maxItems,
   };
-  if (deps.sinceDays && deps.sinceDays > 0) {
-    const since = new Date(Date.now() - deps.sinceDays * 24 * 3600 * 1000);
-    input.start = since.toISOString().slice(0, 10); // YYYY-MM-DD
-  }
 
   try {
     const items = await deps.runActor(input);
