@@ -207,11 +207,8 @@ a { color: inherit; text-decoration: none; }
 .see { margin-left: auto; font-weight: 600; font-size: 13px; color: var(--text-faint); white-space: nowrap; }
 .foot-info { display: inline-flex; align-items: center; gap: 8px; }
 
-/* Logo nguồn — favicon kín đáo (giống cột trái) để nhận biết nguồn, không lấn tiêu đề */
-.src-logo {
-  width: 20px; height: 20px; border-radius: 5px; flex: none;
-  object-fit: contain; background: #fff; padding: 2px;
-}
+/* Icon loại nguồn — đúng bộ icon ở "Lọc nguồn" cột trái (📰 ▶ 𝕏 👽 ♪) */
+.src-type { font-size: 16px; line-height: 1; flex: none; }
 
 /* Avatar nguồn nhỏ trong footer báo chí */
 .mini-avatars { display: inline-flex; padding-left: 7px; }

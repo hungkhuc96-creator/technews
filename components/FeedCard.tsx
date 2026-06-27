@@ -1,14 +1,11 @@
 import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime, sourceLabel, compactNumber } from '../lib/feed/format';
 import { metaFor } from '../lib/feed/sourceMeta';
-import { feedLogo } from '../lib/feed/sourceLogos';
 
-// Logo nguồn (favicon) — nhận biết nguồn kín đáo, thay cho nhãn chữ màu.
+// Icon loại nguồn — DÙNG ĐÚNG bộ icon ở "Lọc nguồn" cột trái (📰 ▶ 𝕏 👽 ♪).
 function SrcLogo({ item }: { item: FeedItem }) {
   const type = item.sourceTypes[0] ?? 'press';
-  const src = feedLogo(type, item.sourceName);
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img className="src-logo" src={src} alt="" loading="lazy" />;
+  return <span className="src-type">{metaFor(type).icon}</span>;
 }
 
 function See({ type }: { type: string }) {

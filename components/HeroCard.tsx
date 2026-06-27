@@ -1,6 +1,6 @@
 import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime } from '../lib/feed/format';
-import { feedLogo } from '../lib/feed/sourceLogos';
+import { metaFor } from '../lib/feed/sourceMeta';
 
 // Thẻ HERO vàng cho tin nóng nhất (thường là cụm báo chí nhiều nguồn).
 export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; onOpen?: () => void }) {
@@ -15,7 +15,7 @@ export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; on
       <span className="hero-flame">🔥</span>
       {/* Thứ tự đồng bộ thẻ báo: logo · tên báo · thời gian · badge Nóng nhất */}
       <div className="hero-meta">
-        <img className="src-logo" src={feedLogo('press', item.sourceName)} alt="" />
+        <span className="src-type">{metaFor(item.sourceTypes[0] ?? 'press').icon}</span>
         <span>{item.sourceName ?? 'Nguồn'}</span>
         <span className="dot">·</span>
         <span>{isUpdated ? 'cập nhật ' : ''}{relativeTime(ts, now)}</span>
