@@ -36,8 +36,32 @@ export function domainFor(name: string): string | null {
   return DOMAINS[norm(name)] ?? null;
 }
 
+function favicon(domain: string): string {
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+}
+
 // URL logo (favicon 64px của Google). null nếu chưa biết domain → dùng chữ cái thay.
 export function logoFor(name: string): string | null {
   const d = domainFor(name);
-  return d ? `https://www.google.com/s2/favicons?domain=${d}&sz=64` : null;
+  return d ? favicon(d) : null;
+}
+
+// Logo nền tảng (cho YouTube/X/Reddit/TikTok khi không khớp được logo nguồn cụ thể).
+const PLATFORM: Record<string, string> = {
+  youtube: favicon('youtube.com'),
+  x: favicon('x.com'),
+  reddit: favicon('reddit.com'),
+  tiktok: favicon('tiktok.com'),
+};
+
+// Logo hiển thị trên thẻ/cột phải theo loại nguồn:
+// - báo chí: logo trang báo
+// - X: logo tài khoản nếu trùng trang báo (TechCrunch…), không thì logo X
+// - YouTube/Reddit/TikTok: logo nền tảng
+export function feedLogo(type: string, sourceName?: string | null, authorName?: string | null): string {
+  if (type === 'press') return logoFor(sourceName ?? '') ?? favicon('news.google.com');
+  if (type === 'x') {
+    return logoFor(authorName ?? '') ?? logoFor((sourceName ?? '').replace('@', '')) ?? PLATFORM.x;
+  }
+  return PLATFORM[type] ?? favicon('news.google.com');
 }

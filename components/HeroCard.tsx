@@ -1,27 +1,25 @@
 import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime } from '../lib/feed/format';
-
-const SOURCE_ICON: Record<string, string> = {
-  press: '📰', youtube: '▶', reddit: '👽', x: '𝕏', tiktok: '♪',
-};
+import { feedLogo } from '../lib/feed/sourceLogos';
 
 // Thẻ HERO vàng cho tin nóng nhất (thường là cụm báo chí nhiều nguồn).
 export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; onOpen?: () => void }) {
   const title = item.titleVi ?? item.title;
-  const icon = SOURCE_ICON[item.sourceTypes[0] ?? 'press'] ?? '📰';
   const ts = item.updatedAt ?? item.publishedAt;
+  const isUpdated = !!item.updatedAt && item.updatedAt !== item.publishedAt;
   const avatars = item.sources.length > 0
     ? item.sources
     : [{ initial: (item.sourceName ?? 'N').trim().charAt(0).toUpperCase(), color: 'var(--accent-ink)', logo: null as string | null }];
   return (
     <article className="hero" onClick={onOpen}>
       <span className="hero-flame">🔥</span>
+      {/* Thứ tự đồng bộ thẻ báo: logo · tên báo · thời gian · badge Nóng nhất */}
       <div className="hero-meta">
-        <span>{icon} {item.sourceName ?? 'Nguồn'}</span>
+        <img className="src-logo" src={feedLogo('press', item.sourceName)} alt="" />
+        <span>{item.sourceName ?? 'Nguồn'}</span>
         <span className="dot">·</span>
-        <span>🔥 Nóng nhất</span>
-        <span className="dot">·</span>
-        <span>⚡ {relativeTime(ts, now)}</span>
+        <span>{isUpdated ? 'cập nhật ' : ''}{relativeTime(ts, now)}</span>
+        <span className="hero-hot">🔥 Nóng nhất</span>
       </div>
       <h2 className="hero-title">{title}</h2>
       {item.summary ? (

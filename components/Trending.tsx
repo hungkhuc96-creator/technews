@@ -1,19 +1,17 @@
 import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime } from '../lib/feed/format';
-import { metaFor } from '../lib/feed/sourceMeta';
+import { feedLogo } from '../lib/feed/sourceLogos';
 
 function Row({ item, now, onOpen }: { item: FeedItem; now?: Date; onOpen?: (i: FeedItem) => void }) {
-  const m = metaFor(item.sourceTypes[0] ?? 'press');
+  const type = item.sourceTypes[0] ?? 'press';
+  const name = type === 'x' ? (item.authorName ?? item.sourceName)?.replace(/\.(com|net)$/i, '') : item.sourceName;
   return (
     <div className="prow" onClick={() => onOpen?.(item)}>
-      <span className="prow-tag" style={{ color: m.color }}>{m.icon}</span>
-      {item.imageUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img className="prow-thumb" src={item.imageUrl} alt="" loading="lazy" />
-      )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="src-logo" src={feedLogo(type, item.sourceName, item.authorName)} alt="" loading="lazy" />
       <div>
         <div className="prow-title">{item.titleVi ?? item.title}</div>
-        <div className="prow-sub">{item.sourceName ?? m.label} · {relativeTime(item.updatedAt ?? item.publishedAt, now)}</div>
+        <div className="prow-sub">{name ?? 'Nguồn'} · {relativeTime(item.updatedAt ?? item.publishedAt, now)}</div>
       </div>
     </div>
   );

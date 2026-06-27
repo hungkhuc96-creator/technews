@@ -145,6 +145,10 @@ a { color: inherit; text-decoration: none; }
   font-weight: 600; margin-bottom: 10px; position: relative;
 }
 .hero-meta .dot { opacity: 0.5; }
+.hero-hot {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 999px; background: rgba(11, 15, 11, 0.14); font-weight: 700;
+}
 .hero-title {
   font-family: var(--font-grotesk), sans-serif;
   font-size: clamp(24px, 3.1vw, 35px); line-height: 1.15; font-weight: 700;
@@ -203,12 +207,11 @@ a { color: inherit; text-decoration: none; }
 .see { margin-left: auto; font-weight: 600; font-size: 13px; color: var(--text-faint); white-space: nowrap; }
 .foot-info { display: inline-flex; align-items: center; gap: 8px; }
 
-/* Nhãn loại nguồn — chỉ là chữ màu nhỏ, kín đáo để không lấn tiêu đề/tóm tắt */
-.type-tag {
-  display: inline-flex; align-items: center; gap: 4px; flex: none;
-  font-size: 11.5px; font-weight: 700;
+/* Logo nguồn — favicon kín đáo (giống cột trái) để nhận biết nguồn, không lấn tiêu đề */
+.src-logo {
+  width: 20px; height: 20px; border-radius: 5px; flex: none;
+  object-fit: contain; background: #fff; padding: 2px;
 }
-.prow-tag { font-weight: 700; font-size: 11px; flex: none; }
 
 /* Avatar nguồn nhỏ trong footer báo chí */
 .mini-avatars { display: inline-flex; padding-left: 7px; }

@@ -1,14 +1,24 @@
 import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime, sourceLabel, compactNumber } from '../lib/feed/format';
 import { metaFor } from '../lib/feed/sourceMeta';
+import { feedLogo } from '../lib/feed/sourceLogos';
 
-function TypeTag({ type }: { type: string }) {
-  const m = metaFor(type);
-  return <span className="type-tag" style={{ color: m.color }}>{m.icon} {m.label}</span>;
+// Logo nguồn (favicon) — nhận biết nguồn kín đáo, thay cho nhãn chữ màu.
+function SrcLogo({ item }: { item: FeedItem }) {
+  const type = item.sourceTypes[0] ?? 'press';
+  const src = feedLogo(type, item.sourceName, item.authorName);
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img className="src-logo" src={src} alt="" loading="lazy" />;
 }
 
 function See({ type }: { type: string }) {
   return <span className="see">{metaFor(type).cta} →</span>;
+}
+
+// Tên tài khoản X gọn (bỏ đuôi .com nếu trùng trang báo)
+function xName(item: FeedItem): string {
+  const n = item.authorName ?? (item.sourceName ?? '').replace('@', '');
+  return n.replace(/\.(com|net)$/i, '');
 }
 
 // ===== Thẻ X =====
@@ -17,9 +27,9 @@ function XCard({ item, ts }: { item: FeedItem; ts: string }) {
   return (
     <>
       <div className="card-meta">
-        <TypeTag type="x" />
-        <span className="x-name">{item.authorName ?? item.sourceName}</span>
-        <span>· {item.sourceName} · {ts}</span>
+        <SrcLogo item={item} />
+        <span className="x-name">{xName(item)}</span>
+        <span>· {ts}</span>
       </div>
       <p className="x-tweet">{item.title}</p>
       {item.imageUrl && (
@@ -52,7 +62,7 @@ function YouTubeCard({ item, ts }: { item: FeedItem; ts: string }) {
         </div>
       )}
       <div className="card-meta">
-        <TypeTag type="youtube" />
+        <SrcLogo item={item} />
         <span>{item.sourceName ?? 'YouTube'}</span>
         <span>· {views}{ts}</span>
       </div>
@@ -74,7 +84,7 @@ function PressCard({ item, ts, isUpdated }: { item: FeedItem; ts: string; isUpda
         <img className="card-thumb" src={item.imageUrl} alt="" loading="lazy" />
       )}
       <div className="card-meta">
-        <TypeTag type={type} />
+        <SrcLogo item={item} />
         <span>{item.sourceName ?? 'Nguồn'}</span>
         <span>· {isUpdated ? 'cập nhật ' : ''}{ts}</span>
         {hot && <span className="meta-hot">🔥 Nóng</span>}
