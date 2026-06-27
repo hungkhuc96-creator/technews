@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { rankCandidates, type RankCandidate } from './rank';
 import { engagementHeat, recencyHeat } from '../score/heat';
 import type { PostMetrics } from '../types';
-import { logoFor } from './sourceLogos';
+import { logoFor, sourceAvatar } from './sourceLogos';
 
 export interface FeedItem {
   clusterId: string;
@@ -112,7 +112,13 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
         publishedAt: p.published_at,
         updatedAt: newestByCluster.get(c.id) ?? null,
         nSources: c.n_sources,
-        sources: [...(sourceNamesByCluster.get(c.id) ?? [])].slice(0, 4).map(avatarFor),
+        // Đưa nguồn ĐẠI DIỆN lên đầu để avatar khớp với tên báo hiển thị.
+        sources: (() => {
+          const names = [...(sourceNamesByCluster.get(c.id) ?? [])];
+          const lead = sourceName ?? '';
+          const ordered = lead ? [lead, ...names.filter((n) => n !== lead)] : names;
+          return ordered.slice(0, 4).map(avatarFor);
+        })(),
         authorName: null,
         metrics: {},
         text: p.text ?? null,
@@ -161,7 +167,8 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
       publishedAt: p.published_at,
       updatedAt: null,
       nSources: 1,
-      sources: sName ? [avatarFor(sName)] : [],
+      // Avatar đúng theo loại: YouTube → avatar kênh, X → logo báo/tài khoản.
+      sources: sName ? [{ ...avatarFor(sName), logo: sourceAvatar(sName, p.source_type) }] : [],
       authorName: p.author ?? null,
       metrics: (p.metrics ?? {}) as PostMetrics,
       text: p.text ?? null,

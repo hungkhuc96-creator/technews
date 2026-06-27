@@ -61,3 +61,13 @@ export function feedLogo(type: string, sourceName?: string | null): string {
   if (type === 'press') return logoFor(sourceName ?? '') ?? favicon('news.google.com');
   return PLATFORM[type] ?? favicon('news.google.com');
 }
+
+// Avatar CỦA NGUỒN cụ thể (khác feedLogo là logo theo loại):
+// - báo: logo trang báo; - YouTube: avatar kênh (unavatar); - X: logo báo nếu trùng, không thì avatar tài khoản.
+export function sourceAvatar(name: string, type = 'press'): string | null {
+  const clean = name.replace(/^@/, '').trim();
+  if (!clean) return null;
+  if (type === 'youtube') return `https://unavatar.io/youtube/${encodeURIComponent(clean)}`;
+  if (type === 'x') return logoFor(clean) ?? `https://unavatar.io/twitter/${encodeURIComponent(clean)}`;
+  return logoFor(name); // báo chí → favicon trang báo
+}

@@ -1,4 +1,4 @@
-import { logoFor } from '../lib/feed/sourceLogos';
+import { logoFor, sourceAvatar } from '../lib/feed/sourceLogos';
 
 const NAV = [
   { icon: '🏠', label: 'Trang chủ' },
@@ -37,6 +37,16 @@ const FOLLOWS = [
   { name: 'NotebookCheck', initial: 'N', color: '#2e7d32' },
   { name: 'AndroidPolice', initial: 'p', color: '#2bb24c' },
   { name: 'Gizmochina', initial: 'z', color: '#e0531a' },
+];
+
+// Kênh YouTube theo dõi (avatar lấy qua unavatar theo handle).
+const YT_FOLLOWS = [
+  { name: 'MKBHD', handle: 'mkbhd', color: '#d23b3b' },
+  { name: 'Dave2D', handle: 'Dave2D', color: '#2d8c8c' },
+  { name: 'Mrwhosetheboss', handle: 'Mrwhosetheboss', color: '#5b34da' },
+  { name: 'Max Tech', handle: 'MaxTechOfficial', color: '#0a84ff' },
+  { name: 'Linus Tech Tips', handle: 'LinusTechTips', color: '#e0531a' },
+  { name: 'HardwareCanucks', handle: 'HardwareCanucks', color: '#1d8f3a' },
 ];
 
 export function Sidebar({
@@ -85,7 +95,7 @@ export function Sidebar({
         ))}
       </nav>
 
-      <div className="side-title"><span>THEO DÕI</span><span>{FOLLOWS.length}</span></div>
+      <div className="side-title"><span>THEO DÕI</span><span>{FOLLOWS.length + YT_FOLLOWS.length}</span></div>
       <nav>
         {FOLLOWS.map((f) => {
           const logo = logoFor(f.name);
@@ -93,7 +103,7 @@ export function Sidebar({
             <div key={f.name} className="follow-row">
               {logo ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img className="follow-avatar follow-logo" src={logo} alt="" loading="lazy" />
+                <img className="follow-avatar follow-logo" src={logo} alt="" />
               ) : (
                 <span className="follow-avatar" style={{ background: f.color }}>{f.initial}</span>
               )}
@@ -101,6 +111,19 @@ export function Sidebar({
             </div>
           );
         })}
+        {YT_FOLLOWS.map((f) => (
+          <div key={f.name} className="follow-row">
+            {/* avatar kênh YouTube (unavatar); nền đỏ nhạt nếu ảnh chưa tải */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className="follow-avatar follow-channel"
+              src={sourceAvatar(f.handle, 'youtube') ?? ''}
+              alt=""
+              style={{ background: f.color }}
+            />
+            <span className="follow-yt">▶</span>{f.name}
+          </div>
+        ))}
       </nav>
     </aside>
   );
