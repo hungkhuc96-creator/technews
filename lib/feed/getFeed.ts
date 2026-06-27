@@ -145,6 +145,10 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
     candidates.push({ item, bucket: p.source_type, rawHeat });
   }
 
-  // maxConsecutive=3: không quá 3 card cùng loại liên tiếp → trộn nguồn rõ hơn.
-  return rankCandidates(candidates, limit, 3);
+  // maxConsecutive=3: không quá 3 card cùng loại liên tiếp.
+  // caps: mỗi nguồn ĐỨNG RIÊNG tối đa ~20% feed → báo chí luôn là xương sống,
+  // X/YouTube... chỉ rắc thêm (X rất tươi nên nếu không chặn sẽ chiếm nửa feed).
+  const standaloneCap = Math.max(3, Math.round(limit * 0.2));
+  const caps = { youtube: standaloneCap, reddit: standaloneCap, x: standaloneCap, tiktok: standaloneCap };
+  return rankCandidates(candidates, limit, 3, caps);
 }

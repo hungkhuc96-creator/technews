@@ -11,6 +11,7 @@ export function rankCandidates<T>(
   cands: RankCandidate<T>[],
   limit: number,
   maxConsecutive = Infinity,
+  caps: Record<string, number> = {},
 ): T[] {
   const maxByBucket = new Map<string, number>();
   for (const c of cands) {
@@ -23,21 +24,24 @@ export function rankCandidates<T>(
     })
     .sort((a, b) => b.score - a.score);
 
-  if (!Number.isFinite(maxConsecutive)) {
+  if (!Number.isFinite(maxConsecutive) && Object.keys(caps).length === 0) {
     return scored.slice(0, limit).map((x) => x.item);
   }
 
   const pool = [...scored];
   const out: T[] = [];
+  const counts = new Map<string, number>();
+  const underCap = (b: string) => caps[b] === undefined || (counts.get(b) ?? 0) < caps[b];
   let lastBucket: string | null = null;
   let run = 0;
   while (out.length < limit && pool.length > 0) {
-    let idx = 0;
-    if (run >= maxConsecutive && lastBucket !== null) {
-      const alt = pool.findIndex((x) => x.bucket !== lastBucket);
-      if (alt >= 0) idx = alt;
-    }
+    // pool đã xếp điểm giảm dần → findIndex trả item điểm cao nhất còn hợp lệ.
+    const needDifferent = run >= maxConsecutive && lastBucket !== null;
+    let idx = pool.findIndex((x) => underCap(x.bucket) && (!needDifferent || x.bucket !== lastBucket));
+    if (idx < 0) idx = pool.findIndex((x) => underCap(x.bucket)); // nới ràng buộc "khác loại"
+    if (idx < 0) break; // không còn item nào dưới trần
     const picked = pool.splice(idx, 1)[0];
+    counts.set(picked.bucket, (counts.get(picked.bucket) ?? 0) + 1);
     if (picked.bucket === lastBucket) run += 1;
     else {
       lastBucket = picked.bucket;

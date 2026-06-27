@@ -16,6 +16,11 @@ interface Tweet {
   author?: { userName?: string; name?: string };
 }
 
+// Bỏ link t.co (link rút gọn của Twitter) khỏi text + gọn khoảng trắng.
+function cleanText(s: string): string {
+  return s.replace(/https?:\/\/t\.co\/\S+/g, '').replace(/\s+/g, ' ').trim();
+}
+
 // Chuẩn hóa tweet → NormalizedPost. Bỏ retweet & reply (giữ tín hiệu gốc).
 // X xếp theo ĐỘ MỚI (getFeed dùng recencyHeat cho source_type 'x') — metrics chỉ để hiển thị.
 export function normalizeTweets(items: unknown[]): NormalizedPost[] {
@@ -23,6 +28,7 @@ export function normalizeTweets(items: unknown[]): NormalizedPost[] {
     .filter((t) => t && t.id && !t.isRetweet && !t.isReply)
     .map((t) => {
       const handle = t.author?.userName ?? 'unknown';
+      const cleanedText = cleanText(t.text ?? '');
       const metrics: NormalizedPost['metrics'] = {};
       if (t.likeCount) metrics.likes = t.likeCount;
       if (t.retweetCount) metrics.reposts = t.retweetCount;
@@ -31,8 +37,8 @@ export function normalizeTweets(items: unknown[]): NormalizedPost[] {
         sourceType: 'x',
         sourceName: `@${handle}`,
         externalId: String(t.id),
-        title: (t.text ?? '').trim(),
-        text: (t.text ?? '').trim(),
+        title: cleanedText,
+        text: cleanedText,
         url: t.url ?? t.twitterUrl ?? `https://x.com/${handle}/status/${t.id}`,
         author: t.author?.name ?? null,
         publishedAt: new Date(t.createdAt ?? Date.now()).toISOString(),

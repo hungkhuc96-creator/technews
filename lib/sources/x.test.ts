@@ -14,6 +14,17 @@ describe('normalizeTweets', () => {
     expect(out[0].externalId).toBe('1001');
   });
 
+  it('cắt link t.co khỏi tiêu đề/nội dung tweet', () => {
+    const out = normalizeTweets([
+      {
+        id: '9', text: 'Tin lớn về M5 https://t.co/abc123XY',
+        createdAt: '2026-06-26T10:00:00.000Z', isRetweet: false, isReply: false,
+        author: { userName: 'verge', name: 'The Verge' },
+      },
+    ]);
+    expect(out[0].title).toBe('Tin lớn về M5');
+  });
+
   it('map đúng các trường: nguồn @handle, metrics, ngày', () => {
     const [p] = normalizeTweets(items);
     expect(p.sourceType).toBe('x');

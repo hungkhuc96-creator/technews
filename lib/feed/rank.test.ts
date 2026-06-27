@@ -35,4 +35,15 @@ describe('rankCandidates', () => {
     const out = rankCandidates(cands, 7, 2); // tối đa 2 cùng loại liên tiếp
     expect(out.indexOf('y1')).toBeLessThan(6); // luật đa dạng phải kéo y1 lên
   });
+
+  it('giới hạn số card mỗi bucket theo caps (bucket không có cap thì không giới hạn)', () => {
+    const cands = [
+      ...Array.from({ length: 10 }, (_, i) => ({ item: `x${i}`, bucket: 'x', rawHeat: 100 - i })),
+      ...Array.from({ length: 5 }, (_, i) => ({ item: `p${i}`, bucket: 'press', rawHeat: 50 - i })),
+    ];
+    const out = rankCandidates(cands, 20, Infinity, { x: 3 });
+    expect(out.filter((s) => s.startsWith('x')).length).toBe(3); // x bị chặn ở 3
+    expect(out.filter((s) => s.startsWith('p')).length).toBe(5); // press không chặn
+    expect(out).toHaveLength(8);
+  });
 });
