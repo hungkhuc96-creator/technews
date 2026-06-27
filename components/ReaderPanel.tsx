@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime, sourceLabel, compactNumber } from '../lib/feed/format';
 
@@ -31,6 +32,23 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
   const m = item.metrics;
   const xClean = (item.authorName ?? (item.sourceName ?? '').replace('@', '')).replace(/\.(com|net)$/i, '');
   const srcName = isX ? xClean : (item.sourceName ?? 'Nguồn');
+  const nitterUrl = isX ? item.url.replace(/(?:x|twitter)\.com/, 'nitter.net') : '';
+
+  // Dịch caption tweet sang tiếng Việt (gọi API khi mở panel X).
+  const [vi, setVi] = useState<string | null>(null);
+  useEffect(() => {
+    if (!isX) return;
+    let alive = true;
+    setVi(null);
+    fetch('/api/translate', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ text: item.title }),
+    })
+      .then((r) => r.json())
+      .then((d) => { if (alive && d.vi) setVi(d.vi); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [isX, item.title]);
 
   return (
     <div className="reader-overlay" onClick={onClose}>
@@ -88,7 +106,7 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
             ))}
 
             {isX && (
-              <div className="reader-box">
+              <>
                 <div className="reader-xhead">
                   <span className="r-avatar xbig" style={{ background: hashColor(xClean) }}>{xClean.charAt(0).toUpperCase()}</span>
                   <div className="reader-xinfo">
@@ -97,18 +115,20 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
                   </div>
                   <span className="reader-xlogo">𝕏</span>
                 </div>
-                <p className="reader-xtweet">{item.title}</p>
-                {item.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img className="reader-xmedia" src={item.imageUrl} alt="" />
-                )}
+                {/* Caption dịch tiếng Việt (bản gốc tiếng Anh nằm trong box nitter bên dưới) */}
+                <p className="reader-xcaption">{vi ?? item.title}</p>
+                {!vi && <div className="reader-translating">⚡ Đang dịch…</div>}
                 <div className="reader-xeng">
                   {m.likes ? <span>♥ {compactNumber(m.likes)}</span> : null}
                   {m.reposts ? <span>⇄ {compactNumber(m.reposts)}</span> : null}
                   {m.comments ? <span>💬 {compactNumber(m.comments)}</span> : null}
                   {m.views ? <span>👁 {compactNumber(m.views)}</span> : null}
                 </div>
-              </div>
+                <div className="reader-srcs-title">🖥 TRANG GỐC</div>
+                <div className="reader-nitter">
+                  <iframe src={nitterUrl} title="Nitter — bài gốc trên X" loading="lazy" />
+                </div>
+              </>
             )}
 
             {hasAi && (
