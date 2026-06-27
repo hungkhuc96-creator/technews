@@ -141,14 +141,12 @@ a { color: inherit; text-decoration: none; }
   opacity: 0.16; pointer-events: none; line-height: 1;
 }
 .hero-meta {
-  display: flex; align-items: center; gap: 8px; font-size: 13px;
-  font-weight: 600; margin-bottom: 10px; position: relative;
+  display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1;
+  font-weight: 500; margin-bottom: 12px; position: relative; color: rgba(11, 11, 15, 0.58);
 }
-.hero-meta .dot { opacity: 0.5; }
-.hero-hot {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 9px; border-radius: 999px; background: rgba(11, 15, 11, 0.14); font-weight: 700;
-}
+.hero-meta .dot { opacity: 0.45; }
+/* "Nóng nhất" — bỏ box, chỉ là chữ kín đáo (tiêu đề/tóm tắt mới là chính) */
+.hero-hot { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
 .hero-title {
   font-family: var(--font-grotesk), sans-serif;
   font-size: clamp(24px, 3.1vw, 35px); line-height: 1.15; font-weight: 700;
@@ -167,7 +165,7 @@ a { color: inherit; text-decoration: none; }
 }
 .hero-sources .savatar:first-child { margin-left: 0; }
 .savatar-logo { background: #fff; object-fit: contain; padding: 2px; }
-.hero-srctext { font-size: 13px; font-weight: 600; }
+.hero-srctext { font-size: 13px; font-weight: 500; color: rgba(11, 11, 15, 0.58); }
 .hero-btn {
   margin-left: auto; padding: 10px 18px; border-radius: 999px;
   background: var(--accent-ink); color: var(--accent);
@@ -187,7 +185,8 @@ a { color: inherit; text-decoration: none; }
   background: var(--surface-2);
 }
 .video-thumb .card-thumb { width: 100%; margin: 0; border-radius: 0; }
-.card-meta { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-faint); margin: 0; }
+.card-meta { display: flex; align-items: center; gap: 8px; font-size: 12.5px; line-height: 1; color: var(--text-faint); margin: 0; }
+.card-meta > * { line-height: 1; }
 .chip {
   display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px;
   border-radius: 7px; background: var(--surface-2); font-size: 11px; color: var(--text-dim);
