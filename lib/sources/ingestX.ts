@@ -5,6 +5,8 @@ export interface XIngestDeps {
   runActor: (input: Record<string, unknown>) => Promise<unknown[]>;
   upsert: (posts: NormalizedPost[]) => Promise<number>;
   maxItems?: number;  // trần kết quả — giữ THẤP để tiết kiệm chi phí Apify (§13)
+  // Dịch caption sang tiếng Việt (lưu vào title; text vẫn giữ bản gốc tiếng Anh).
+  translate?: (text: string) => Promise<string>;
 }
 
 export async function ingestX(
@@ -22,7 +24,20 @@ export async function ingestX(
 
   try {
     const items = await deps.runActor(input);
-    const posts = normalizeTweets(items);
+    let posts = normalizeTweets(items);
+    // Dịch caption sang tiếng Việt: title = bản dịch, text = bản gốc tiếng Anh.
+    if (deps.translate) {
+      posts = await Promise.all(
+        posts.map(async (p) => {
+          try {
+            const vi = (await deps.translate!(p.title)).trim();
+            return vi ? { ...p, title: vi, text: p.text || p.title } : p;
+          } catch {
+            return p; // dịch lỗi thì giữ nguyên bản gốc
+          }
+        }),
+      );
+    }
     const inserted = await deps.upsert(posts);
     return { fetched: posts.length, inserted };
   } catch (err) {

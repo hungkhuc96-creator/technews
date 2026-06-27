@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime, sourceLabel } from '../lib/feed/format';
 
@@ -33,22 +32,6 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
   const xClean = (item.authorName ?? (item.sourceName ?? '').replace('@', '')).replace(/\.(com|net)$/i, '');
   const srcName = isX ? xClean : (item.sourceName ?? 'Nguồn');
   const nitterUrl = isX ? item.url.replace(/(?:x|twitter)\.com/, 'nitter.net') : '';
-
-  // Dịch caption tweet sang tiếng Việt (gọi API khi mở panel X).
-  const [vi, setVi] = useState<string | null>(null);
-  useEffect(() => {
-    if (!isX) return;
-    let alive = true;
-    setVi(null);
-    fetch('/api/translate', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ text: item.title }),
-    })
-      .then((r) => r.json())
-      .then((d) => { if (alive && d.vi) setVi(d.vi); })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, [isX, item.title]);
 
   return (
     <div className="reader-overlay" onClick={onClose}>
@@ -107,11 +90,10 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
 
             {isX && (
               <>
-                {/* Box "Dịch bởi AI" — cùng kiểu box tóm tắt AI của báo chí */}
+                {/* Box "Dịch bởi AI" — caption đã dịch sẵn lúc nạp (cùng kiểu box báo) */}
                 <div className="reader-ai">
                   <span className="reader-ai-badge">⚡ Dịch bởi AI</span>
-                  <p className="reader-ai-sum">{vi ?? item.title}</p>
-                  {!vi && <div className="reader-translating">⚡ Đang dịch…</div>}
+                  <p className="reader-ai-sum">{item.title}</p>
                 </div>
                 <div className="reader-srcs-title">🖥 TRANG GỐC</div>
                 <div className="reader-nitter">
