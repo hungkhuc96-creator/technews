@@ -32,7 +32,8 @@ jobs:
           APIFY_TOKEN=${{ secrets.APIFY_TOKEN }}
           EOF
 
-      - run: npm ci
+      # npm install (không phải npm ci) để tự cài đúng thư viện theo hệ điều hành Linux của CI.
+      - run: npm install --no-audit --no-fund
 
       # --- Lõi (miễn phí / Claude rẻ): báo chí + gom cụm + tóm tắt + YouTube ---
       - run: npm run ingest:press
