@@ -28,3 +28,4 @@ next-env.d.ts
 *.tsbuildinfo
 
 design-moi.html
+.vercel
