@@ -32,13 +32,13 @@ export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; on
         </ul>
       ) : null}
       <div className="hero-foot">
-        <button className="hero-btn" onClick={onOpen}>Xem tin →</button>
         <span className="hero-sources">
           {avatars.map((a, i) => (
             <span key={i} className="savatar" style={{ background: a.color, color: '#fff' }}>{a.initial}</span>
           ))}
         </span>
         <span className="hero-srctext">{item.nSources} nguồn đưa tin</span>
+        <button className="hero-btn" onClick={onOpen}>Xem tin →</button>
       </div>
     </article>
   );

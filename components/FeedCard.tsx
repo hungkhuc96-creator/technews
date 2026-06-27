@@ -1,12 +1,14 @@
 import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime, sourceLabel, compactNumber } from '../lib/feed/format';
+import { metaFor } from '../lib/feed/sourceMeta';
 
-const SOURCE_ICON: Record<string, string> = {
-  press: '📰', youtube: '▶', reddit: '👽', x: '𝕏', tiktok: '♪',
-};
+function TypeTag({ type }: { type: string }) {
+  const m = metaFor(type);
+  return <span className="type-tag" style={{ background: m.color }}>{m.icon} {m.label}</span>;
+}
 
-function See() {
-  return <span className="see">Xem tin →</span>;
+function See({ type }: { type: string }) {
+  return <span className="see">{metaFor(type).cta} →</span>;
 }
 
 // ===== Thẻ X =====
@@ -15,6 +17,7 @@ function XCard({ item, ts }: { item: FeedItem; ts: string }) {
   return (
     <>
       <div className="card-meta">
+        <TypeTag type="x" />
         {item.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img className="x-avatar" src={item.imageUrl} alt="" loading="lazy" />
@@ -26,13 +29,13 @@ function XCard({ item, ts }: { item: FeedItem; ts: string }) {
       </div>
       <p className="x-tweet">{item.title}</p>
       <div className="card-foot">
-        <See />
-        <span className="foot-right x-eng">
+        <span className="foot-info x-eng">
           {m.likes ? <span>♥ {compactNumber(m.likes)}</span> : null}
           {m.reposts ? <span>⇄ {compactNumber(m.reposts)}</span> : null}
           {m.comments ? <span>💬 {compactNumber(m.comments)}</span> : null}
           {m.views ? <span>👁 {compactNumber(m.views)}</span> : null}
         </span>
+        <See type="x" />
       </div>
     </>
   );
@@ -51,19 +54,20 @@ function YouTubeCard({ item, ts }: { item: FeedItem; ts: string }) {
         </div>
       )}
       <div className="card-meta">
-        <span>▶ {item.sourceName ?? 'YouTube'}</span>
+        <TypeTag type="youtube" />
+        <span>{item.sourceName ?? 'YouTube'}</span>
         <span>· {views}{ts}</span>
       </div>
       <h3 className="card-title">{item.titleVi ?? item.title}</h3>
       {item.summary && <p className="card-summary">{item.summary}</p>}
-      <div className="card-foot"><See /></div>
+      <div className="card-foot"><See type="youtube" /></div>
     </>
   );
 }
 
 // ===== Thẻ báo chí (mặc định) =====
 function PressCard({ item, ts, isUpdated }: { item: FeedItem; ts: string; isUpdated: boolean }) {
-  const icon = SOURCE_ICON[item.sourceTypes[0] ?? 'press'] ?? '📰';
+  const type = item.sourceTypes[0] ?? 'press';
   const hot = item.nSources >= 3;
   return (
     <>
@@ -72,7 +76,8 @@ function PressCard({ item, ts, isUpdated }: { item: FeedItem; ts: string; isUpda
         <img className="card-thumb" src={item.imageUrl} alt="" loading="lazy" />
       )}
       <div className="card-meta">
-        <span>{icon} {item.sourceName ?? 'Nguồn'}</span>
+        <TypeTag type={type} />
+        <span>{item.sourceName ?? 'Nguồn'}</span>
         <span>· {isUpdated ? 'cập nhật ' : ''}{ts}</span>
         {hot && <span className="meta-hot">🔥 Nóng</span>}
       </div>
@@ -85,8 +90,7 @@ function PressCard({ item, ts, isUpdated }: { item: FeedItem; ts: string; isUpda
         </ul>
       ) : null}
       <div className="card-foot">
-        <See />
-        <span className="foot-right">
+        <span className="foot-info">
           {item.sources.length > 0 && (
             <span className="mini-avatars">
               {item.sources.map((a, i) => (
@@ -96,6 +100,7 @@ function PressCard({ item, ts, isUpdated }: { item: FeedItem; ts: string; isUpda
           )}
           <span>{sourceLabel(item.nSources)}</span>
         </span>
+        <See type={type} />
       </div>
     </>
   );

@@ -57,13 +57,19 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ===== Shell ===== */
+/* Full-bleed kiểu mạng xã hội: container rất rộng, feed 720 ở giữa,
+   cột trái/phải đẩy ra sát mép. */
 .layout {
-  max-width: 1320px; margin: 0 auto; padding: 22px 24px 90px;
-  display: flex; gap: 26px; align-items: flex-start;
+  max-width: 2160px; margin: 0 auto; padding: 24px 26px 90px;
+  display: flex; gap: 30px; align-items: flex-start;
 }
-.sidebar { width: 232px; flex: 0 0 auto; position: sticky; top: 86px; }
-.feed { flex: 1 1 0%; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
-.rail { width: 320px; flex: 0 0 auto; position: sticky; top: 86px; display: flex; flex-direction: column; gap: 16px; }
+.sidebar {
+  width: 212px; flex: 0 0 auto; position: sticky; top: 86px;
+  max-height: calc(100vh - 100px); overflow-y: auto; scrollbar-width: none;
+}
+.sidebar::-webkit-scrollbar { display: none; }
+.feed { flex: 1 1 0%; min-width: 0; max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.rail { width: 322px; flex: 0 0 auto; position: sticky; top: 86px; display: flex; flex-direction: column; gap: 16px; }
 
 /* ===== Sidebar ===== */
 .nav-item {
@@ -147,7 +153,7 @@ a { color: inherit; text-decoration: none; }
 .hero-bullets li { margin: 3px 0; }
 .hero-summary { font-size: 15px; line-height: 1.55; margin: 0 0 16px; position: relative; opacity: 0.9; }
 .hero-foot { display: flex; align-items: center; gap: 12px; position: relative; flex-wrap: wrap; }
-.hero-sources { display: flex; margin-left: auto; }
+.hero-sources { display: flex; }
 .hero-sources .savatar {
   width: 24px; height: 24px; border-radius: 7px; color: #fff; margin-left: -6px;
   display: flex; align-items: center; justify-content: center;
@@ -157,7 +163,7 @@ a { color: inherit; text-decoration: none; }
 .hero-sources .savatar:first-child { margin-left: 0; }
 .hero-srctext { font-size: 13px; font-weight: 600; }
 .hero-btn {
-  padding: 10px 18px; border-radius: 999px;
+  margin-left: auto; padding: 10px 18px; border-radius: 999px;
   background: var(--accent-ink); color: var(--accent);
   font-size: 14px; font-weight: 700; cursor: pointer; border: none;
 }
@@ -165,22 +171,24 @@ a { color: inherit; text-decoration: none; }
 /* ===== Feed cards ===== */
 .card {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 14px; padding: 16px 18px;
+  border-radius: 14px; padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 12px;
 }
 .card:hover { border-color: rgba(255, 255, 255, 0.18); }
 .card-thumb {
-  width: calc(100% + 36px); margin: -16px -18px 12px; display: block;
-  height: 200px; object-fit: cover; border-radius: 14px 14px 0 0;
+  width: calc(100% + 40px); margin: -18px -20px 0; display: block;
+  aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px 14px 0 0;
   background: var(--surface-2);
 }
-.card-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-faint); margin-bottom: 8px; }
+.video-thumb .card-thumb { width: 100%; margin: 0; border-radius: 0; }
+.card-meta { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-faint); margin: 0; }
 .chip {
   display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px;
   border-radius: 7px; background: var(--surface-2); font-size: 11px; color: var(--text-dim);
 }
 .chip-heat { color: var(--heat); font-weight: 700; }
-.card-title { font-size: 17px; font-weight: 650; line-height: 1.35; margin: 0 0 8px; }
-.card-bullets { margin: 6px 0 10px; padding-left: 18px; color: var(--text-dim); font-size: 14px; line-height: 1.5; }
+.card-title { font-size: 18px; font-weight: 650; line-height: 1.32; margin: 0; }
+.card-bullets { margin: 0; padding-left: 18px; color: var(--text-dim); font-size: 14px; line-height: 1.5; }
 .card-bullets li { margin: 2px 0; }
 .card-foot { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-faint); }
 .card-summary {
@@ -189,9 +197,19 @@ a { color: inherit; text-decoration: none; }
 }
 .meta-hot { display: inline-flex; align-items: center; gap: 4px; color: var(--heat); font-weight: 700; }
 
-/* "Xem tin" — luôn ở góc trái dưới, đồng nhất mọi thẻ */
-.see { font-weight: 700; color: var(--text-dim); }
-.foot-right { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
+/* CTA "Xem tin/Xem video" — góc PHẢI dưới; thông tin nguồn ở TRÁI */
+.see { margin-left: auto; font-weight: 700; color: var(--accent); white-space: nowrap; }
+.foot-info { display: inline-flex; align-items: center; gap: 8px; }
+
+/* Nhãn loại nguồn — màu riêng để nhận biết báo / YouTube / X / Reddit */
+.type-tag {
+  display: inline-flex; align-items: center; gap: 4px; flex: none;
+  padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff;
+}
+.prow-tag {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 18px; height: 18px; border-radius: 5px; font-size: 10px; color: #fff;
+}
 
 /* Avatar nguồn nhỏ trong footer báo chí */
 .mini-avatars { display: inline-flex; padding-left: 7px; }
@@ -203,7 +221,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* Thẻ YouTube: nút play đè lên thumbnail */
-.video-thumb { position: relative; }
+.video-thumb { position: relative; margin: -18px -20px 0; border-radius: 14px 14px 0 0; overflow: hidden; }
 .video-play {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, calc(-50% - 6px));
   width: 54px; height: 54px; border-radius: 999px; background: rgba(0, 0, 0, 0.6);
@@ -237,6 +255,16 @@ a { color: inherit; text-decoration: none; }
 .prow-thumb { flex: none; width: 42px; height: 42px; border-radius: 8px; object-fit: cover; background: var(--surface-2); }
 .prow-title { font-size: 13px; line-height: 1.35; color: var(--text); }
 .prow-sub { font-size: 11px; color: var(--text-faint); margin-top: 3px; }
+
+/* "Tin hôm nay" tự cuộn (list nhân đôi để lặp liền mạch) */
+.ticker-view {
+  position: relative; height: 300px; overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+}
+.ticker-track { animation: tickerScroll 22s linear infinite; }
+.ticker-view:hover .ticker-track { animation-play-state: paused; }
+@keyframes tickerScroll { from { transform: translateY(0); } to { transform: translateY(-50%); } }
 
 /* ===== Theme sáng ===== */
 :root[data-theme="light"] {
