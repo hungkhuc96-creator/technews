@@ -11,6 +11,12 @@ function hashColor(s: string): string {
   return `hsl(${h % 360} 52% 45%)`;
 }
 
+// Lấy video ID từ link YouTube (watch?v= / shorts/ / youtu.be / embed)
+function youtubeId(url: string): string | null {
+  const m = url.match(/(?:v=|\/shorts\/|youtu\.be\/|\/embed\/)([\w-]{6,})/);
+  return m ? m[1] : null;
+}
+
 // Panel chi tiết trượt từ phải khi bấm một thẻ — bám sát thiết kế gốc.
 export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date; onClose: () => void }) {
   const type = item.sourceTypes[0] ?? 'press';
@@ -19,7 +25,8 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
   const hasAi = !!item.summary || item.bullets.length > 0;
   const isVideo = type === 'youtube';
   const isX = type === 'x';
-  const showBanner = !!item.imageUrl && (type === 'press' || isVideo);
+  const showBanner = !!item.imageUrl && type === 'press'; // YouTube dùng player nhúng, không banner
+  const ytId = isVideo ? youtubeId(item.url) : null;
   const ts = relativeTime(item.updatedAt ?? item.publishedAt, now);
   const m = item.metrics;
   const xClean = (item.authorName ?? (item.sourceName ?? '').replace('@', '')).replace(/\.(com|net)$/i, '');
@@ -46,7 +53,8 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
           )}
 
           <div className="reader-body">
-            <h1 className="reader-h1">{title}</h1>
+            {/* X: bỏ tiêu đề (caption) vì box X bên dưới đã có; chỉ giữ giờ + số nguồn */}
+            {!isX && <h1 className="reader-h1">{title}</h1>}
 
             <div className="reader-meta">
               {item.sources.length > 0 && (
@@ -62,13 +70,22 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
               <span className="reader-metatext">{ts} · {sourceLabel(item.nSources)}</span>
             </div>
 
-            {isVideo && item.imageUrl && (
+            {isVideo && (ytId ? (
+              <div className="reader-ytembed">
+                <iframe
+                  src={`https://www.youtube.com/embed/${ytId}`}
+                  title={title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : item.imageUrl && (
               <a className="reader-video" href={item.url} target="_blank" rel="noopener noreferrer"
                 style={{ backgroundImage: `url(${item.imageUrl})` }}>
                 <span className="reader-ytbadge tl">▶ YouTube</span>
                 <span className="reader-play">▶</span>
               </a>
-            )}
+            ))}
 
             {isX && (
               <div className="reader-box">
@@ -105,6 +122,14 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {type === 'press' && item.text && (
+              <div className="reader-orig">
+                <div className="reader-orig-head">📄 NGUYÊN VĂN (NGUỒN GỐC)</div>
+                <p className="reader-orig-para">{item.text}</p>
+                <div className="reader-orig-note">Trích từ nguồn gốc. Đọc bài đầy đủ qua nút “Mở bài gốc ↗” bên dưới.</div>
               </div>
             )}
 

@@ -17,6 +17,7 @@ const item: FeedItem = {
   sources: [],
   authorName: null,
   metrics: {},
+  text: null,
   sourceTypes: ['press'],
   heat: 0.5,
   titleVi: 'OpenAI ra mắt GPT-5.2',
