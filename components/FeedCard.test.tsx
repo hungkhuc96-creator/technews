@@ -58,17 +58,18 @@ describe('FeedCard', () => {
     expect(screen.getByText(/7 nguồn đưa tin/)).toBeDefined();
   });
 
-  it('thẻ X: hiện tweet, avatar và lượt tương tác', () => {
+  it('thẻ X: hiện tweet, ẢNH bài gốc (không avatar) và lượt tương tác', () => {
     const x: FeedItem = {
       ...item, sourceTypes: ['x'], sourceName: '@MKBHD', authorName: 'Marques Brownlee',
       title: 'Tweet về M5', titleVi: null, summary: null, bullets: [],
-      imageUrl: 'https://pbs.twimg.com/a.jpg', metrics: { likes: 3400, reposts: 120, comments: 45 },
+      imageUrl: 'https://pbs.twimg.com/media/a.jpg', metrics: { likes: 3400, reposts: 120, comments: 45 },
     };
     const { container } = render(<FeedCard item={x} now={new Date('2026-06-24T12:00:00.000Z')} />);
     expect(screen.getByText('Tweet về M5')).toBeDefined();
     expect(screen.getByText(/Marques Brownlee/)).toBeDefined();
-    expect(container.querySelector('img.x-avatar')).not.toBeNull();
-    expect(screen.getByText(/3,4k/)).toBeDefined(); // likes rút gọn
+    expect(container.querySelector('img.x-media')).not.toBeNull(); // ảnh bài
+    expect(container.querySelector('img.x-avatar')).toBeNull();     // không còn avatar
+    expect(screen.getByText(/3,4k/)).toBeDefined();
   });
 
   it('thẻ YouTube: hiện lượt xem', () => {

@@ -1,3 +1,5 @@
+import { logoFor } from '../lib/feed/sourceLogos';
+
 const NAV = [
   { icon: '🏠', label: 'Trang chủ' },
   { icon: '🔥', label: 'Đang nóng' },
@@ -85,12 +87,20 @@ export function Sidebar({
 
       <div className="side-title"><span>THEO DÕI</span><span>{FOLLOWS.length}</span></div>
       <nav>
-        {FOLLOWS.map((f) => (
-          <div key={f.name} className="follow-row">
-            <span className="follow-avatar" style={{ background: f.color }}>{f.initial}</span>
-            {f.name}
-          </div>
-        ))}
+        {FOLLOWS.map((f) => {
+          const logo = logoFor(f.name);
+          return (
+            <div key={f.name} className="follow-row">
+              {logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="follow-avatar follow-logo" src={logo} alt="" loading="lazy" />
+              ) : (
+                <span className="follow-avatar" style={{ background: f.color }}>{f.initial}</span>
+              )}
+              {f.name}
+            </div>
+          );
+        })}
       </nav>
     </aside>
   );

@@ -12,7 +12,7 @@ export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; on
   const ts = item.updatedAt ?? item.publishedAt;
   const avatars = item.sources.length > 0
     ? item.sources
-    : [{ initial: (item.sourceName ?? 'N').trim().charAt(0).toUpperCase(), color: 'var(--accent-ink)' }];
+    : [{ initial: (item.sourceName ?? 'N').trim().charAt(0).toUpperCase(), color: 'var(--accent-ink)', logo: null as string | null }];
   return (
     <article className="hero" onClick={onOpen}>
       <span className="hero-flame">🔥</span>
@@ -34,7 +34,12 @@ export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; on
       <div className="hero-foot">
         <span className="hero-sources">
           {avatars.map((a, i) => (
-            <span key={i} className="savatar" style={{ background: a.color, color: '#fff' }}>{a.initial}</span>
+            a.logo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={i} className="savatar savatar-logo" src={a.logo} alt="" loading="lazy" />
+            ) : (
+              <span key={i} className="savatar" style={{ background: a.color, color: '#fff' }}>{a.initial}</span>
+            )
           ))}
         </span>
         <span className="hero-srctext">{item.nSources} nguồn đưa tin</span>

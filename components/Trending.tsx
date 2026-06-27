@@ -6,7 +6,7 @@ function Row({ item, now, onOpen }: { item: FeedItem; now?: Date; onOpen?: (i: F
   const m = metaFor(item.sourceTypes[0] ?? 'press');
   return (
     <div className="prow" onClick={() => onOpen?.(item)}>
-      <span className="prow-tag" style={{ background: m.color }}>{m.icon}</span>
+      <span className="prow-tag" style={{ color: m.color }}>{m.icon}</span>
       {item.imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
         <img className="prow-thumb" src={item.imageUrl} alt="" loading="lazy" />

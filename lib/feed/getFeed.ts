@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { rankCandidates, type RankCandidate } from './rank';
 import { engagementHeat, recencyHeat } from '../score/heat';
 import type { PostMetrics } from '../types';
+import { logoFor } from './sourceLogos';
 
 export interface FeedItem {
   clusterId: string;
@@ -11,7 +12,7 @@ export interface FeedItem {
   publishedAt: string;
   updatedAt: string | null;
   nSources: number;
-  sources: { initial: string; color: string }[];
+  sources: { initial: string; color: string; logo: string | null }[];
   authorName: string | null; // tên hiển thị (vd tài khoản X)
   metrics: PostMetrics;       // like/repost/comment/views cho X, YouTube…
   sourceTypes: string[];
@@ -23,11 +24,11 @@ export interface FeedItem {
 }
 
 // Avatar nguồn: chữ cái đầu + màu suy ra từ tên (ổn định).
-function avatarFor(name: string): { initial: string; color: string } {
+function avatarFor(name: string): { initial: string; color: string; logo: string | null } {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
   const initial = (name.match(/[a-z0-9]/i)?.[0] ?? '•').toUpperCase();
-  return { initial, color: `hsl(${h % 360} 52% 45%)` };
+  return { initial, color: `hsl(${h % 360} 52% 45%)`, logo: logoFor(name) };
 }
 
 export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedItem[]> {

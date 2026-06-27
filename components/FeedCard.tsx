@@ -4,7 +4,7 @@ import { metaFor } from '../lib/feed/sourceMeta';
 
 function TypeTag({ type }: { type: string }) {
   const m = metaFor(type);
-  return <span className="type-tag" style={{ background: m.color }}>{m.icon} {m.label}</span>;
+  return <span className="type-tag" style={{ color: m.color }}>{m.icon} {m.label}</span>;
 }
 
 function See({ type }: { type: string }) {
@@ -18,16 +18,14 @@ function XCard({ item, ts }: { item: FeedItem; ts: string }) {
     <>
       <div className="card-meta">
         <TypeTag type="x" />
-        {item.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img className="x-avatar" src={item.imageUrl} alt="" loading="lazy" />
-        ) : (
-          <span className="x-avatar x-avatar-fb">𝕏</span>
-        )}
         <span className="x-name">{item.authorName ?? item.sourceName}</span>
         <span>· {item.sourceName} · {ts}</span>
       </div>
       <p className="x-tweet">{item.title}</p>
+      {item.imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img className="x-media" src={item.imageUrl} alt="" loading="lazy" />
+      )}
       <div className="card-foot">
         <span className="foot-info x-eng">
           {m.likes ? <span>♥ {compactNumber(m.likes)}</span> : null}
@@ -94,7 +92,12 @@ function PressCard({ item, ts, isUpdated }: { item: FeedItem; ts: string; isUpda
           {item.sources.length > 0 && (
             <span className="mini-avatars">
               {item.sources.map((a, i) => (
-                <span key={i} className="mini-avatar" style={{ background: a.color }}>{a.initial}</span>
+                a.logo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={i} className="mini-avatar mini-logo" src={a.logo} alt="" loading="lazy" />
+                ) : (
+                  <span key={i} className="mini-avatar" style={{ background: a.color }}>{a.initial}</span>
+                )
               ))}
             </span>
           )}

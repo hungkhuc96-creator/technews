@@ -15,6 +15,7 @@ interface Tweet {
   isRetweet?: boolean;
   isReply?: boolean;
   author?: { userName?: string; name?: string; profilePicture?: string };
+  extendedEntities?: { media?: Array<{ media_url_https?: string; type?: string }> };
 }
 
 // Bỏ link t.co (link rút gọn của Twitter) khỏi text + gọn khoảng trắng.
@@ -56,7 +57,7 @@ export function normalizeTweets(items: unknown[]): NormalizedPost[] {
         publishedAt: new Date(t.createdAt ?? Date.now()).toISOString(),
         lang: t.lang ?? null,
         metrics,
-        imageUrl: t.author?.profilePicture ?? null, // dùng làm avatar X trên thẻ
+        imageUrl: t.extendedEntities?.media?.[0]?.media_url_https ?? null, // ẢNH/VIDEO trong bài
       } satisfies NormalizedPost;
     });
 }
