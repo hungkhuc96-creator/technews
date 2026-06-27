@@ -22,6 +22,19 @@ const FOLLOWS = [
   { name: 'MacRumors', initial: 'M', color: '#e0244b' },
   { name: 'Android Authority', initial: 'A', color: '#3ddc84' },
   { name: 'GSMArena', initial: 'G', color: '#cf2e2e' },
+  { name: 'TechCrunch', initial: 'T', color: '#1d8f3a' },
+  { name: 'Ars Technica', initial: 'r', color: '#ff4e00' },
+  { name: "Tom's Hardware", initial: 'H', color: '#b5132b' },
+  { name: 'The Information', initial: 'i', color: '#ec4d2c' },
+  { name: 'CNET', initial: 'C', color: '#d6002a' },
+  { name: 'WCCFTech', initial: 'W', color: '#d33a2c' },
+  { name: 'Windows Central', initial: 'w', color: '#0078d4' },
+  { name: 'Wired', initial: 'x', color: '#262626' },
+  { name: 'BGR', initial: 'B', color: '#222222' },
+  { name: 'Macworld', initial: 'm', color: '#c98a00' },
+  { name: 'NotebookCheck', initial: 'N', color: '#2e7d32' },
+  { name: 'AndroidPolice', initial: 'p', color: '#2bb24c' },
+  { name: 'Gizmochina', initial: 'z', color: '#e0531a' },
 ];
 
 export function Sidebar({

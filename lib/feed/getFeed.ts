@@ -10,12 +10,21 @@ export interface FeedItem {
   publishedAt: string;
   updatedAt: string | null;
   nSources: number;
+  sources: { initial: string; color: string }[];
   sourceTypes: string[];
   heat: number;
   titleVi: string | null;
   imageUrl: string | null;
   summary: string | null;
   bullets: string[];
+}
+
+// Avatar nguồn: chữ cái đầu + màu suy ra từ tên (ổn định).
+function avatarFor(name: string): { initial: string; color: string } {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  const initial = (name.match(/[a-z0-9]/i)?.[0] ?? '•').toUpperCase();
+  return { initial, color: `hsl(${h % 360} 52% 45%)` };
 }
 
 export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedItem[]> {
@@ -63,16 +72,22 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
     if (!imageByCluster.has(r.cluster_id)) imageByCluster.set(r.cluster_id, r.image_url);
   }
 
-  // Thời điểm bài MỚI NHẤT mỗi cụm — giống cách runScoring tính "độ tươi".
-  // Thẻ sẽ hiện cái này ("cập nhật X giờ trước") thay vì ngày bài đại diện (bài gốc).
+  // Bài của mỗi cụm: dùng để (1) tìm bài MỚI NHẤT ("độ tươi", giống runScoring)
+  // và (2) gom danh sách NGUỒN trong cụm → avatar xếp chồng trên thẻ hero.
   const { data: clusterPosts } = clusterIds.length
-    ? await client.from('posts').select('cluster_id, published_at').in('cluster_id', clusterIds)
+    ? await client.from('posts').select('cluster_id, published_at, sources(name)').in('cluster_id', clusterIds)
     : { data: [] as any[] };
   const newestByCluster = new Map<string, string>();
+  const sourceNamesByCluster = new Map<string, Set<string>>();
   for (const r of clusterPosts ?? []) {
     const prev = newestByCluster.get(r.cluster_id);
     if (!prev || new Date(r.published_at) > new Date(prev)) {
       newestByCluster.set(r.cluster_id, r.published_at);
+    }
+    const nm = Array.isArray(r.sources) ? r.sources[0]?.name : (r.sources as any)?.name;
+    if (nm) {
+      if (!sourceNamesByCluster.has(r.cluster_id)) sourceNamesByCluster.set(r.cluster_id, new Set());
+      sourceNamesByCluster.get(r.cluster_id)!.add(nm);
     }
   }
 
@@ -92,6 +107,7 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
         publishedAt: p.published_at,
         updatedAt: newestByCluster.get(c.id) ?? null,
         nSources: c.n_sources,
+        sources: [...(sourceNamesByCluster.get(c.id) ?? [])].slice(0, 4).map(avatarFor),
         sourceTypes: c.source_types ?? [],
         heat: c.heat_score,
         titleVi: sum?.title_vi ?? null,
@@ -135,6 +151,7 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
       publishedAt: p.published_at,
       updatedAt: null,
       nSources: 1,
+      sources: sName ? [avatarFor(sName)] : [],
       sourceTypes: [p.source_type],
       heat: rawHeat,
       titleVi: null,

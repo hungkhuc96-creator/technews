@@ -104,7 +104,10 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ===== Category chips + new pill ===== */
-.chips { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 4px; }
+.chips {
+  display: flex; gap: 9px; flex-wrap: wrap;
+  padding-bottom: 16px; margin-bottom: 2px; border-bottom: 1px solid var(--border);
+}
 .chip-cat {
   padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 600;
   cursor: pointer; white-space: nowrap; color: var(--text-dim);
