@@ -1,0 +1,41 @@
+[
+  {
+    "id": "1001",
+    "url": "https://x.com/MKBHD/status/1001",
+    "text": "New video on the M5 MacBook Pro is live!",
+    "createdAt": "2026-06-26T10:00:00.000Z",
+    "lang": "en",
+    "retweetCount": 120,
+    "replyCount": 45,
+    "likeCount": 3400,
+    "quoteCount": 12,
+    "isRetweet": false,
+    "isReply": false,
+    "isQuote": false,
+    "author": { "userName": "MKBHD", "name": "Marques Brownlee" }
+  },
+  {
+    "id": "1002",
+    "url": "https://x.com/verge/status/1002",
+    "text": "RT @someone: old news",
+    "createdAt": "2026-06-26T09:00:00.000Z",
+    "lang": "en",
+    "likeCount": 10,
+    "retweetCount": 2,
+    "replyCount": 0,
+    "isRetweet": true,
+    "isReply": false,
+    "author": { "userName": "verge", "name": "The Verge" }
+  },
+  {
+    "id": "1003",
+    "url": "https://x.com/sama/status/1003",
+    "text": "@someone good point, thanks",
+    "createdAt": "2026-06-26T08:00:00.000Z",
+    "lang": "en",
+    "likeCount": 500,
+    "isRetweet": false,
+    "isReply": true,
+    "author": { "userName": "sama", "name": "Sam Altman" }
+  }
+]
