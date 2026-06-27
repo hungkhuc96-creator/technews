@@ -1,16 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { FeedItem } from '../lib/feed/getFeed';
-import { relativeTime, sourceLabel, compactNumber } from '../lib/feed/format';
+import { relativeTime, sourceLabel } from '../lib/feed/format';
 
 const TYPE_LABEL: Record<string, string> = {
   press: '📰 Bài báo', youtube: '▶ Video', x: '𝕏 Bài đăng', reddit: '👽 Reddit', tiktok: '♪ TikTok',
 };
-
-function hashColor(s: string): string {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return `hsl(${h % 360} 52% 45%)`;
-}
 
 // Lấy video ID từ link YouTube (watch?v= / shorts/ / youtu.be / embed)
 function youtubeId(url: string): string | null {
@@ -29,7 +23,6 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
   const showBanner = !!item.imageUrl && type === 'press'; // YouTube dùng player nhúng, không banner
   const ytId = isVideo ? youtubeId(item.url) : null;
   const ts = relativeTime(item.updatedAt ?? item.publishedAt, now);
-  const m = item.metrics;
   const xClean = (item.authorName ?? (item.sourceName ?? '').replace('@', '')).replace(/\.(com|net)$/i, '');
   const srcName = isX ? xClean : (item.sourceName ?? 'Nguồn');
   const nitterUrl = isX ? item.url.replace(/(?:x|twitter)\.com/, 'nitter.net') : '';
@@ -107,22 +100,11 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
 
             {isX && (
               <>
-                <div className="reader-xhead">
-                  <span className="r-avatar xbig" style={{ background: hashColor(xClean) }}>{xClean.charAt(0).toUpperCase()}</span>
-                  <div className="reader-xinfo">
-                    <div className="reader-xname">{xClean} <span className="x-verified">✔</span></div>
-                    <div className="reader-xhandle">{item.sourceName} · X</div>
-                  </div>
-                  <span className="reader-xlogo">𝕏</span>
-                </div>
-                {/* Caption dịch tiếng Việt (bản gốc tiếng Anh nằm trong box nitter bên dưới) */}
-                <p className="reader-xcaption">{vi ?? item.title}</p>
-                {!vi && <div className="reader-translating">⚡ Đang dịch…</div>}
-                <div className="reader-xeng">
-                  {m.likes ? <span>♥ {compactNumber(m.likes)}</span> : null}
-                  {m.reposts ? <span>⇄ {compactNumber(m.reposts)}</span> : null}
-                  {m.comments ? <span>💬 {compactNumber(m.comments)}</span> : null}
-                  {m.views ? <span>👁 {compactNumber(m.views)}</span> : null}
+                {/* Box "Dịch bởi AI" — cùng kiểu box tóm tắt AI của báo chí */}
+                <div className="reader-ai">
+                  <span className="reader-ai-badge">⚡ Dịch bởi AI</span>
+                  <p className="reader-ai-sum">{vi ?? item.title}</p>
+                  {!vi && <div className="reader-translating">⚡ Đang dịch…</div>}
                 </div>
                 <div className="reader-srcs-title">🖥 TRANG GỐC</div>
                 <div className="reader-nitter">
