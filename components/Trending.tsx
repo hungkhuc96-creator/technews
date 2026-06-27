@@ -27,7 +27,12 @@ export function Trending({
         </div>
         {today.map((item) => (
           <div className="prow" key={item.clusterId} onClick={() => onOpen?.(item)}>
-            <span className="prow-icon">{icon(item)}</span>
+            {item.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className="prow-thumb" src={item.imageUrl} alt="" loading="lazy" />
+            ) : (
+              <span className="prow-icon">{icon(item)}</span>
+            )}
             <div>
               <div className="prow-title">{item.titleVi ?? item.title}</div>
               <div className="prow-sub">{relativeTime(item.updatedAt ?? item.publishedAt, now)}</div>
@@ -40,7 +45,12 @@ export function Trending({
         <div className="panel-title">⭐ Đáng tham khảo</div>
         {refs.map((item) => (
           <div className="prow" key={item.clusterId} onClick={() => onOpen?.(item)}>
-            <span className="prow-icon">{icon(item)}</span>
+            {item.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className="prow-thumb" src={item.imageUrl} alt="" loading="lazy" />
+            ) : (
+              <span className="prow-icon">{icon(item)}</span>
+            )}
             <div>
               <div className="prow-title">{item.titleVi ?? item.title}</div>
               <div className="prow-sub">
