@@ -26,3 +26,5 @@ yarn-error.log*
 # Next.js / TS build artifacts
 next-env.d.ts
 *.tsbuildinfo
+
+design-moi.html
