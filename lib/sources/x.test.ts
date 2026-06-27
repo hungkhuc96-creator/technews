@@ -14,6 +14,17 @@ describe('normalizeTweets', () => {
     expect(out[0].externalId).toBe('1001');
   });
 
+  it('bỏ tweet rác: quá ngắn VÀ không có link (giữ tweet ngắn có link)', () => {
+    const base = { createdAt: '2026-06-26T10:00:00.000Z', isRetweet: false, isReply: false, author: { userName: 'u' } };
+    const out = normalizeTweets([
+      { ...base, id: 'a', text: 'Amazing 🤩' },                                   // rác → bỏ
+      { ...base, id: 'b', text: 'Madness' },                                       // rác → bỏ
+      { ...base, id: 'c', text: 'Tin lớn https://t.co/xyz' },                      // ngắn NHƯNG có link → giữ
+      { ...base, id: 'd', text: 'Apple vừa công bố dòng MacBook Pro M5 hoàn toàn mới' }, // dài → giữ
+    ]);
+    expect(out.map((p) => p.externalId)).toEqual(['c', 'd']);
+  });
+
   it('cắt link t.co khỏi tiêu đề/nội dung tweet', () => {
     const out = normalizeTweets([
       {

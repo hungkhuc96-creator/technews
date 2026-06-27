@@ -21,11 +21,19 @@ function cleanText(s: string): string {
   return s.replace(/https?:\/\/t\.co\/\S+/g, '').replace(/\s+/g, ' ').trim();
 }
 
-// Chuẩn hóa tweet → NormalizedPost. Bỏ retweet & reply (giữ tín hiệu gốc).
+// Tweet "rác": quá ngắn VÀ không kèm link. Tweet ngắn có link thường trỏ tới
+// bài báo nên giữ lại; còn các câu phản ứng kiểu "Amazing"/"Madness" thì bỏ.
+function isJunk(t: Tweet): boolean {
+  const raw = t.text ?? '';
+  const hasLink = /https?:\/\//.test(raw);
+  return !hasLink && cleanText(raw).length < 40;
+}
+
+// Chuẩn hóa tweet → NormalizedPost. Bỏ retweet, reply và tweet rác (giữ tín hiệu gốc).
 // X xếp theo ĐỘ MỚI (getFeed dùng recencyHeat cho source_type 'x') — metrics chỉ để hiển thị.
 export function normalizeTweets(items: unknown[]): NormalizedPost[] {
   return (items as Tweet[])
-    .filter((t) => t && t.id && !t.isRetweet && !t.isReply)
+    .filter((t) => t && t.id && !t.isRetweet && !t.isReply && !isJunk(t))
     .map((t) => {
       const handle = t.author?.userName ?? 'unknown';
       const cleanedText = cleanText(t.text ?? '');
