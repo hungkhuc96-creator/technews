@@ -1,0 +1,60 @@
+{
+  "kind": "Listing",
+  "data": {
+    "children": [
+      {
+        "kind": "t3",
+        "data": {
+          "id": "abc123",
+          "title": "Apple announces M5 MacBook Pro",
+          "permalink": "/r/technology/comments/abc123/apple_announces_m5/",
+          "url": "https://www.apple.com/macbook-pro",
+          "created_utc": 1750000000,
+          "ups": 4521,
+          "num_comments": 312,
+          "subreddit": "technology",
+          "author": "techuser",
+          "stickied": false,
+          "thumbnail": "https://b.thumbs.redditmedia.com/x.jpg",
+          "preview": {
+            "images": [
+              { "source": { "url": "https://preview.redd.it/m5.jpg?width=640&amp;auto=webp&amp;s=abc" } }
+            ]
+          }
+        }
+      },
+      {
+        "kind": "t3",
+        "data": {
+          "id": "def456",
+          "title": "Discussion: best Linux distro for laptops?",
+          "permalink": "/r/technology/comments/def456/discussion_best_linux/",
+          "url": "https://www.reddit.com/r/technology/comments/def456/discussion_best_linux/",
+          "created_utc": 1750003600,
+          "ups": 88,
+          "num_comments": 140,
+          "subreddit": "technology",
+          "author": "linuxfan",
+          "stickied": false,
+          "thumbnail": "self"
+        }
+      },
+      {
+        "kind": "t3",
+        "data": {
+          "id": "sticky99",
+          "title": "MONTHLY MEGATHREAD - read the rules",
+          "permalink": "/r/technology/comments/sticky99/megathread/",
+          "url": "https://www.reddit.com/r/technology/comments/sticky99/megathread/",
+          "created_utc": 1749000000,
+          "ups": 200,
+          "num_comments": 50,
+          "subreddit": "technology",
+          "author": "AutoModerator",
+          "stickied": true,
+          "thumbnail": "default"
+        }
+      }
+    ]
+  }
+}
