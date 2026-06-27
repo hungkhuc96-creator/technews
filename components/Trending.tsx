@@ -8,7 +8,7 @@ function Row({ item, now, onOpen }: { item: FeedItem; now?: Date; onOpen?: (i: F
   return (
     <div className="prow" onClick={() => onOpen?.(item)}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="src-logo" src={feedLogo(type, item.sourceName, item.authorName)} alt="" loading="lazy" />
+      <img className="src-logo" src={feedLogo(type, item.sourceName)} alt="" loading="lazy" />
       <div>
         <div className="prow-title">{item.titleVi ?? item.title}</div>
         <div className="prow-sub">{name ?? 'Nguồn'} · {relativeTime(item.updatedAt ?? item.publishedAt, now)}</div>

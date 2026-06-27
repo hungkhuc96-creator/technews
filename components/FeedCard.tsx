@@ -6,7 +6,7 @@ import { feedLogo } from '../lib/feed/sourceLogos';
 // Logo nguồn (favicon) — nhận biết nguồn kín đáo, thay cho nhãn chữ màu.
 function SrcLogo({ item }: { item: FeedItem }) {
   const type = item.sourceTypes[0] ?? 'press';
-  const src = feedLogo(type, item.sourceName, item.authorName);
+  const src = feedLogo(type, item.sourceName);
   // eslint-disable-next-line @next/next/no-img-element
   return <img className="src-logo" src={src} alt="" loading="lazy" />;
 }

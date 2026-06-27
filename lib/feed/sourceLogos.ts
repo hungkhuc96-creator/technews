@@ -54,14 +54,10 @@ const PLATFORM: Record<string, string> = {
   tiktok: favicon('tiktok.com'),
 };
 
-// Logo hiển thị trên thẻ/cột phải theo loại nguồn:
-// - báo chí: logo trang báo
-// - X: logo tài khoản nếu trùng trang báo (TechCrunch…), không thì logo X
-// - YouTube/Reddit/TikTok: logo nền tảng
-export function feedLogo(type: string, sourceName?: string | null, authorName?: string | null): string {
+// Logo hiển thị theo LOẠI nguồn:
+// - báo chí → logo TRANG BÁO cụ thể (mỗi báo một logo)
+// - YouTube/X/Reddit/TikTok → logo NỀN TẢNG (YouTube, X, Reddit…)
+export function feedLogo(type: string, sourceName?: string | null): string {
   if (type === 'press') return logoFor(sourceName ?? '') ?? favicon('news.google.com');
-  if (type === 'x') {
-    return logoFor(authorName ?? '') ?? logoFor((sourceName ?? '').replace('@', '')) ?? PLATFORM.x;
-  }
   return PLATFORM[type] ?? favicon('news.google.com');
 }
