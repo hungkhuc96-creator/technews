@@ -119,7 +119,7 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
           const ordered = lead ? [lead, ...names.filter((n) => n !== lead)] : names;
           return ordered.slice(0, 4).map(avatarFor);
         })(),
-        authorName: null,
+        authorName: null as string | null,
         metrics: {},
         text: p.text ?? null,
         sourceTypes: c.source_types ?? [],

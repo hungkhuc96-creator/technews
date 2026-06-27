@@ -40,7 +40,7 @@ export async function parseYoutubeFeed(
 ): Promise<NormalizedPost[]> {
   const feed = await parser.parseString(xml);
   return (feed.items ?? []).map((item) => {
-    const vid = videoIdOf(item);
+    const vid = videoIdOf(item as { id?: string });
     const views = viewsOf(item as { mediaGroup?: unknown });
     const isoDate =
       item.isoDate ??

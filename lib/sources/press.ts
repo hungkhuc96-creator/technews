@@ -62,7 +62,7 @@ export async function parsePressFeed(
       title: (item.title ?? '').trim(),
       text: stripHtml(rawText),
       url,
-      author: item.creator ?? item.author ?? null,
+      author: item.creator ?? (item as { author?: string }).author ?? null,
       publishedAt: isoDate,
       lang: null,
       metrics: {},
