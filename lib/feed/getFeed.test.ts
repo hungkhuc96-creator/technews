@@ -42,8 +42,10 @@ describe('getFeed', () => {
     ]);
     await client.from('posts').update({ cluster_id: hotId }).eq('url', 'https://example.com/f2');
 
+    // heat 4.5: thấp hơn cụm nóng (5) nhưng cao hơn MỌI cụm thật (~tối đa 3.2),
+    // để cả hai cụm test luôn nằm trong top feed → test không phụ thuộc cỡ DB.
     const cold = await client.from('clusters').insert({
-      topic: '__feed_test__', n_sources: 1, post_count: 1, heat_score: 0.1,
+      topic: '__feed_test__', n_sources: 1, post_count: 1, heat_score: 4.5,
       status: 'open', representative_post_id: rep!.id,
     }).select('id').single();
     coldId = cold.data!.id;
@@ -66,8 +68,8 @@ describe('getFeed', () => {
   });
 
   it('trả các cụm xếp theo độ nóng giảm dần, kèm tin đại diện', async () => {
-    // Limit cao để cụm test không bị dữ liệu thật trong DB đẩy ra ngoài.
-    const items = await getFeed(client, 1000);
+    // Hai cụm test có heat cao hơn mọi cụm thật → chỉ cần limit nhỏ là đủ.
+    const items = await getFeed(client, 40);
     const idx = items.findIndex((i) => i.clusterId === hotId);
     const idxCold = items.findIndex((i) => i.clusterId === coldId);
     expect(idx).toBeGreaterThanOrEqual(0);

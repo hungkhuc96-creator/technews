@@ -1,0 +1,36 @@
+name: Cập nhật báo chí (gần realtime)
+
+# Báo chí chạy DÀY: nạp + gom cụm + dịch tiêu đề + tóm tắt sẵn top-N.
+# Phần tóm tắt còn lại tạo LAZY khi người đọc bấm vào (app/api/summary).
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # mỗi 15 phút
+  workflow_dispatch: {}
+
+concurrency:
+  group: update-press
+  cancel-in-progress: false   # đang chạy thì lần sau xếp hàng, không chồng
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Tạo .env.local
+        run: |
+          cat > .env.local <<EOF
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          EOF
+
+      - run: npm install --no-audit --no-fund
+      - run: npm run ingest:press      # lấy RSS báo chí
+      - run: npm run process:press     # gom cụm + chấm độ nóng
+      - run: npm run titles:press      # dịch tiêu đề (eager) → feed luôn tiếng Việt
+      - run: npm run summarize         # tóm tắt sẵn top-N (eager) cho hero/đầu feed

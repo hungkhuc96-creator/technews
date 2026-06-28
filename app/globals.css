@@ -401,6 +401,8 @@ a { color: inherit; text-decoration: none; }
   font-size: 11px; font-weight: 700; letter-spacing: 0.04em; padding: 4px 10px; border-radius: 999px; margin-bottom: 13px;
 }
 .reader-ai-sum { margin: 0 0 13px; font-size: 16px; line-height: 1.65; color: var(--text); }
+.reader-ai-loading { animation: aiPulse 1.2s ease-in-out infinite; }
+@keyframes aiPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 0.85; } }
 .reader-ai-bullets { display: flex; flex-direction: column; gap: 9px; }
 .reader-ai-bullet { display: flex; gap: 10px; align-items: flex-start; font-size: 15.5px; line-height: 1.55; color: var(--text); }
 .r-dot { flex: none; width: 6px; height: 6px; border-radius: 999px; background: var(--accent); margin-top: 7px; }

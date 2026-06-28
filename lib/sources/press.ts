@@ -31,6 +31,15 @@ function stripHtml(input: string): string {
     .trim();
 }
 
+// Giới hạn độ dài đoạn trích để giữ tính "trích đoạn" (không lưu nguyên bài quá dài).
+const MAX_TEXT = 4000;
+function clampText(s: string): string {
+  if (s.length <= MAX_TEXT) return s;
+  const cut = s.slice(0, MAX_TEXT);
+  const lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace > MAX_TEXT * 0.6 ? cut.slice(0, lastSpace) : cut).trimEnd() + '…';
+}
+
 // Lấy ảnh thumbnail theo thứ tự: enclosure ảnh → media:content → media:thumbnail
 // → ảnh <img> đầu tiên trong nội dung. Không có thì null.
 function extractImage(item: ImageItem): string | null {
@@ -51,7 +60,10 @@ export async function parsePressFeed(
   const feed = await parser.parseString(xml);
   return (feed.items ?? []).map((item) => {
     const url = item.link ?? '';
-    const rawText = item.contentSnippet ?? item.content ?? item.summary ?? '';
+    // Ưu tiên content:encoded (đoạn DÀI hơn — vài báo cấp gần cả bài), rồi mới
+    // đến description/summary. Tất cả đều gỡ HTML + giới hạn độ dài bên dưới.
+    const enc = (item as { contentEncoded?: string }).contentEncoded;
+    const rawText = enc ?? item.content ?? item.contentSnippet ?? item.summary ?? '';
     const isoDate =
       item.isoDate ??
       (item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString());
@@ -60,7 +72,7 @@ export async function parsePressFeed(
       sourceName: source.name,
       externalId: item.guid ?? url,
       title: (item.title ?? '').trim(),
-      text: stripHtml(rawText),
+      text: clampText(stripHtml(rawText)),
       url,
       author: item.creator ?? (item as { author?: string }).author ?? null,
       publishedAt: isoDate,

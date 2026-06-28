@@ -126,7 +126,8 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
         heat: c.heat_score,
         titleVi: sum?.title_vi ?? null,
         imageUrl: p.image_url ?? imageByCluster.get(c.id) ?? null,
-        summary: sum?.summary_vi ?? null,
+        // '' là placeholder (mới dịch tiêu đề, chưa tóm tắt) → coi như chưa có.
+        summary: sum?.summary_vi || null,
         bullets: Array.isArray(sum?.bullets_vi) ? sum.bullets_vi : [],
       } satisfies FeedItem;
     })

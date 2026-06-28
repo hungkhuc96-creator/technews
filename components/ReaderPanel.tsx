@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime, sourceLabel } from '../lib/feed/format';
 
@@ -23,7 +26,6 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
   const type = item.sourceTypes[0] ?? 'press';
   const title = item.titleVi ?? item.title;
   const hot = item.nSources >= 3;
-  const hasAi = !!item.summary || item.bullets.length > 0;
   const isVideo = type === 'youtube';
   const isX = type === 'x';
   const showBanner = !!item.imageUrl && type === 'press'; // YouTube dùng player nhúng, không banner
@@ -32,6 +34,36 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
   const xClean = (item.authorName ?? (item.sourceName ?? '').replace('@', '')).replace(/\.(com|net)$/i, '');
   const srcName = isX ? xClean : (item.sourceName ?? 'Nguồn');
   const nitterUrl = isX ? item.url.replace(/(?:x|twitter)\.com/, 'nitter.net') : '';
+
+  // Tóm tắt AI: báo chí tạo theo yêu cầu (lazy) khi bấm vào — nếu chưa có sẵn.
+  const [ai, setAi] = useState<{ summary: string | null; bullets: string[] }>({
+    summary: item.summary,
+    bullets: item.bullets,
+  });
+  const needSummary = type === 'press' && !item.summary && item.bullets.length === 0;
+  const [loadingAi, setLoadingAi] = useState(needSummary);
+  useEffect(() => {
+    if (!needSummary) return;
+    let alive = true;
+    setLoadingAi(true);
+    fetch('/api/summary', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ clusterId: item.clusterId }),
+    })
+      .then((r) => r.json())
+      .then((d: { summary?: string | null; bullets?: string[] }) => {
+        if (!alive) return;
+        setAi({ summary: d.summary ?? null, bullets: Array.isArray(d.bullets) ? d.bullets : [] });
+        setLoadingAi(false);
+      })
+      .catch(() => alive && setLoadingAi(false));
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.clusterId]);
+  const hasAi = !!ai.summary || ai.bullets.length > 0;
 
   return (
     <div className="reader-overlay" onClick={onClose}>
@@ -102,19 +134,24 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
               </>
             )}
 
-            {hasAi && (
+            {loadingAi ? (
+              <div className="reader-ai">
+                <span className="reader-ai-badge">⚡ Đang tóm tắt…</span>
+                <p className="reader-ai-sum reader-ai-loading">AI đang đọc bài và tóm tắt sang tiếng Việt…</p>
+              </div>
+            ) : hasAi ? (
               <div className="reader-ai">
                 <span className="reader-ai-badge">⚡ Tóm tắt bởi AI</span>
-                {item.summary && <p className="reader-ai-sum">{item.summary}</p>}
-                {item.bullets.length > 0 && (
+                {ai.summary && <p className="reader-ai-sum">{ai.summary}</p>}
+                {ai.bullets.length > 0 && (
                   <div className="reader-ai-bullets">
-                    {item.bullets.map((b, i) => (
+                    {ai.bullets.map((b, i) => (
                       <div key={i} className="reader-ai-bullet"><span className="r-dot" /><span>{b}</span></div>
                     ))}
                   </div>
                 )}
               </div>
-            )}
+            ) : null}
 
             {type === 'press' && item.text && (
               <div className="reader-orig">
