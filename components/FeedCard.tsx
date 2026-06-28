@@ -54,7 +54,19 @@ function YouTubeCard({ item, ts }: { item: FeedItem; ts: string }) {
       {item.imageUrl && (
         <div className="video-thumb">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="card-thumb" src={item.imageUrl} alt="" loading="lazy" />
+          <img
+            className="card-thumb"
+            src={item.imageUrl}
+            alt=""
+            loading="lazy"
+            onError={(e) => {
+              // Video không có bản maxres → lùi về hqdefault (luôn tồn tại).
+              const img = e.currentTarget;
+              if (img.src.includes('maxresdefault')) {
+                img.src = img.src.replace('maxresdefault', 'hqdefault');
+              }
+            }}
+          />
           <span className="video-play">▶</span>
         </div>
       )}
@@ -71,7 +83,7 @@ function YouTubeCard({ item, ts }: { item: FeedItem; ts: string }) {
 }
 
 // ===== Thẻ báo chí (mặc định) =====
-function PressCard({ item, ts, isUpdated }: { item: FeedItem; ts: string; isUpdated: boolean }) {
+function PressCard({ item, ts }: { item: FeedItem; ts: string }) {
   const type = item.sourceTypes[0] ?? 'press';
   const hot = item.nSources >= 3;
   return (
@@ -83,7 +95,7 @@ function PressCard({ item, ts, isUpdated }: { item: FeedItem; ts: string; isUpda
       <div className="card-meta">
         <SrcLogo item={item} />
         <span>{item.sourceName ?? 'Nguồn'}</span>
-        <span>· {isUpdated ? 'cập nhật ' : ''}{ts}</span>
+        <span>· {ts}</span>
         {hot && <span className="meta-hot">🔥 Nóng</span>}
       </div>
       <h3 className="card-title">{item.titleVi ?? item.title}</h3>
@@ -118,7 +130,6 @@ function PressCard({ item, ts, isUpdated }: { item: FeedItem; ts: string; isUpda
 
 export function FeedCard({ item, now, onOpen }: { item: FeedItem; now?: Date; onOpen?: () => void }) {
   const type = item.sourceTypes[0] ?? 'press';
-  const isUpdated = !!item.updatedAt && item.updatedAt !== item.publishedAt;
   const ts = relativeTime(item.updatedAt ?? item.publishedAt, now);
   return (
     <article className="card" onClick={onOpen}>
@@ -127,7 +138,7 @@ export function FeedCard({ item, now, onOpen }: { item: FeedItem; now?: Date; on
       ) : type === 'youtube' ? (
         <YouTubeCard item={item} ts={ts} />
       ) : (
-        <PressCard item={item} ts={ts} isUpdated={isUpdated} />
+        <PressCard item={item} ts={ts} />
       )}
     </article>
   );

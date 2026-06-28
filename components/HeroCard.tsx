@@ -6,7 +6,6 @@ import { metaFor } from '../lib/feed/sourceMeta';
 export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; onOpen?: () => void }) {
   const title = item.titleVi ?? item.title;
   const ts = item.updatedAt ?? item.publishedAt;
-  const isUpdated = !!item.updatedAt && item.updatedAt !== item.publishedAt;
   const avatars = item.sources.length > 0
     ? item.sources
     : [{ initial: (item.sourceName ?? 'N').trim().charAt(0).toUpperCase(), color: 'var(--accent-ink)', logo: null as string | null }];
@@ -18,7 +17,7 @@ export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; on
         <span className="src-type">{metaFor(item.sourceTypes[0] ?? 'press').icon}</span>
         <span>{item.sourceName ?? 'Nguồn'}</span>
         <span className="dot">·</span>
-        <span>{isUpdated ? 'cập nhật ' : ''}{relativeTime(ts, now)}</span>
+        <span>{relativeTime(ts, now)}</span>
         <span className="hero-hot">🔥 Nóng nhất</span>
       </div>
       <h2 className="hero-title">{title}</h2>

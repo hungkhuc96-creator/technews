@@ -159,6 +159,12 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
     // Tweet có ẢNH/VIDEO → ưu tiên mạnh để bài trực quan của X nổi lên trang chính.
     if (p.source_type === 'x' && p.image_url) rawHeat *= 2.5;
     const sName = Array.isArray(p.sources) ? (p.sources[0]?.name ?? null) : (p.sources?.name ?? null);
+    // YouTube: nâng thumbnail lên độ phân giải cao (hqdefault 480p → maxresdefault 1280p)
+    // cho bớt mờ. Thẻ có onError tự lùi về hqdefault nếu video không có bản maxres.
+    let imgUrl: string | null = p.image_url ?? null;
+    if (p.source_type === 'youtube' && imgUrl) {
+      imgUrl = imgUrl.replace('/hqdefault.jpg', '/maxresdefault.jpg');
+    }
     const item: FeedItem = {
       clusterId: p.id,
       title: p.title,
@@ -175,7 +181,7 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
       sourceTypes: [p.source_type],
       heat: rawHeat,
       titleVi: null,
-      imageUrl: p.image_url ?? null,
+      imageUrl: imgUrl,
       summary: null,
       bullets: [],
     };

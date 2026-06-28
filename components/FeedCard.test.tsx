@@ -35,15 +35,16 @@ describe('FeedCard', () => {
     expect(screen.getByText(/1 giờ trước/)).toBeDefined();
   });
 
-  it('hiển thị "cập nhật" theo bài MỚI NHẤT khi cụm có bài mới hơn bài đại diện', () => {
+  it('dùng giờ bài MỚI NHẤT khi cụm có bài mới hơn bài đại diện', () => {
     render(
       <FeedCard
         item={{ ...item, publishedAt: '2026-06-20T12:00:00.000Z', updatedAt: '2026-06-24T11:00:00.000Z' }}
         now={new Date('2026-06-24T12:00:00.000Z')}
       />,
     );
-    // dùng giờ của bài cập nhật (1 giờ trước), không phải bài đại diện (4 ngày trước)
-    expect(screen.getByText(/cập nhật 1 giờ trước/)).toBeDefined();
+    // dùng giờ của bài mới nhất (1 giờ trước), không phải bài đại diện (4 ngày trước)
+    expect(screen.getByText(/1 giờ trước/)).toBeDefined();
+    expect(screen.queryByText(/4 ngày trước/)).toBeNull();
   });
 
   it('thẻ báo hiển thị đoạn tóm tắt; nếu không có thì hiện bullet', () => {

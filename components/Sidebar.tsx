@@ -1,10 +1,12 @@
+'use client';
+
+import { useState } from 'react';
 import { logoFor, sourceAvatar } from '../lib/feed/sourceLogos';
 
-const NAV = [
+const NAV: { icon: string; label: string; href?: string }[] = [
   { icon: '🏠', label: 'Trang chủ' },
-  { icon: '🔥', label: 'Đang nóng' },
   { icon: '🕐', label: 'Mới nhất' },
-  { icon: '▶', label: 'Video' },
+  { icon: '🎁', label: 'Deal người nhà', href: 'https://dealhungkhuc.com' },
 ];
 
 const SOURCES: { key: string; icon: string; label: string }[] = [
@@ -58,19 +60,38 @@ export function Sidebar({
   activeNav: string;
   onSelectNav: (label: string) => void;
 }) {
+  // Mặc định chỉ hiện 5 báo; "Xem thêm" để mở hết (kể cả kênh YouTube).
+  const [showAllFollows, setShowAllFollows] = useState(false);
+  const pressShown = showAllFollows ? FOLLOWS : FOLLOWS.slice(0, 5);
+  const hiddenCount = FOLLOWS.length - 5 + YT_FOLLOWS.length;
+
   return (
     <aside className="sidebar">
       <nav>
-        {NAV.map((n) => (
-          <div
-            key={n.label}
-            className={`nav-item${activeNav === n.label ? ' active' : ''}`}
-            onClick={() => onSelectNav(n.label)}
-          >
-            <span>{n.icon}</span>
-            {n.label}
-          </div>
-        ))}
+        {NAV.map((n) =>
+          n.href ? (
+            // "Deal người nhà" — mở trang ngoài (tab mới)
+            <a
+              key={n.label}
+              className="nav-item"
+              href={n.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>{n.icon}</span>
+              {n.label}
+            </a>
+          ) : (
+            <div
+              key={n.label}
+              className={`nav-item${activeNav === n.label ? ' active' : ''}`}
+              onClick={() => onSelectNav(n.label)}
+            >
+              <span>{n.icon}</span>
+              {n.label}
+            </div>
+          ),
+        )}
       </nav>
 
       <div className="side-title"><span>LỌC NGUỒN</span></div>
@@ -97,7 +118,7 @@ export function Sidebar({
 
       <div className="side-title"><span>THEO DÕI</span><span>{FOLLOWS.length + YT_FOLLOWS.length}</span></div>
       <nav>
-        {FOLLOWS.map((f) => {
+        {pressShown.map((f) => {
           const logo = logoFor(f.name);
           return (
             <div key={f.name} className="follow-row">
@@ -111,7 +132,7 @@ export function Sidebar({
             </div>
           );
         })}
-        {YT_FOLLOWS.map((f) => (
+        {showAllFollows && YT_FOLLOWS.map((f) => (
           <div key={f.name} className="follow-row">
             {/* avatar kênh YouTube (unavatar); nền đỏ nhạt nếu ảnh chưa tải */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -124,6 +145,12 @@ export function Sidebar({
             <span className="follow-yt">▶</span>{f.name}
           </div>
         ))}
+        <div
+          className={`follow-more${showAllFollows ? ' is-open' : ''}`}
+          onClick={() => setShowAllFollows((v) => !v)}
+        >
+          {showAllFollows ? '▲ Thu gọn' : `▾ Xem thêm (${hiddenCount})`}
+        </div>
       </nav>
     </aside>
   );

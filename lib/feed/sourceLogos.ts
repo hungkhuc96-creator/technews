@@ -12,6 +12,7 @@ const DOMAINS: Record<string, string> = {
   'ars technica': 'arstechnica.com',
   arstechnica: 'arstechnica.com',
   "tom's hardware": 'tomshardware.com',
+  'toms hardware': 'tomshardware.com',
   tomshardware: 'tomshardware.com',
   'the information': 'theinformation.com',
   cnet: 'cnet.com',

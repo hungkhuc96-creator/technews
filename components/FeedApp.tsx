@@ -32,7 +32,6 @@ export function FeedApp({ items, counts }: { items: FeedItem[]; counts: Record<s
   const filtered = useMemo(() => {
     let list = items;
     if (source !== 'all') list = list.filter((it) => (it.sourceTypes[0] ?? 'press') === source);
-    if (nav === 'Video') list = list.filter((it) => (it.sourceTypes[0] ?? '') === 'youtube');
     if (category !== 'Tất cả') list = list.filter((it) => matchCategory(it.titleVi ?? it.title, category));
     if (query.trim()) {
       const q = query.toLowerCase();
@@ -46,7 +45,7 @@ export function FeedApp({ items, counts }: { items: FeedItem[]; counts: Record<s
     return list;
   }, [items, source, nav, category, query]);
 
-  const showHero = source === 'all' && category === 'Tất cả' && !query.trim() && (nav === 'Trang chủ' || nav === 'Đang nóng');
+  const showHero = source === 'all' && category === 'Tất cả' && !query.trim() && nav === 'Trang chủ';
   const hero = showHero ? filtered[0] : undefined;
   const cards = showHero ? filtered.slice(1) : filtered;
 
@@ -108,6 +107,12 @@ export function FeedApp({ items, counts }: { items: FeedItem[]; counts: Record<s
           )}
 
           {hero && <HeroCard item={hero} now={now} onOpen={() => setReader(hero)} />}
+
+          {/* Trên mobile (cột phải bị ẩn): "Tin hôm nay" + "Đáng tham khảo" nằm ngay dưới tin nóng nhất */}
+          <div className="rail-mobile">
+            <Trending items={items} now={now} onOpen={(it) => setReader(it)} />
+          </div>
+
           {cards.map((item) => (
             <FeedCard key={item.clusterId} item={item} now={now} onOpen={() => setReader(item)} />
           ))}
