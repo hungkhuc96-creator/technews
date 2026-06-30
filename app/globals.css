@@ -119,10 +119,14 @@ a { color: inherit; text-decoration: none; }
 .follow-more:hover { color: var(--text); background: var(--surface); }
 
 /* ===== Category chips + new pill ===== */
+/* Slider: 1 hàng cuộn ngang gọn gàng (mọi màn hình), ẩn thanh cuộn */
 .chips {
-  display: flex; gap: 9px; flex-wrap: wrap;
+  display: flex; gap: 9px; flex-wrap: nowrap; overflow-x: auto;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
   padding-bottom: 16px; margin-bottom: 2px; border-bottom: 1px solid var(--border);
 }
+.chips::-webkit-scrollbar { display: none; }
+.chip-cat { flex: none; }
 .chip-cat {
   padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 600;
   cursor: pointer; white-space: nowrap; color: var(--text-dim);
@@ -475,13 +479,7 @@ a { color: inherit; text-decoration: none; }
   .layout { padding: 12px 12px 72px; }
   .feed { gap: 13px; }
 
-  /* Chips danh mục: cuộn ngang 1 hàng thay vì xuống nhiều dòng */
-  .chips {
-    flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; padding-bottom: 13px;
-  }
-  .chips::-webkit-scrollbar { display: none; }
-  .chip-cat { flex: none; }
+  .chips { padding-bottom: 13px; }
 
   .hero { padding: 18px 18px; border-radius: 16px; }
   .hero-title { max-width: 100%; }

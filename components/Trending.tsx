@@ -23,30 +23,37 @@ export function Trending({
   now?: Date;
   onOpen?: (item: FeedItem) => void;
 }) {
-  const today = items.slice(0, 8);
-  const refs = items.slice(8, 14);
+  // Tin nóng = nóng nhất theo heat; Tin hôm nay = mới nhất theo thời gian.
+  const hottest = [...items].sort((a, b) => b.heat - a.heat).slice(0, 8);
+  const recent = [...items]
+    .sort(
+      (a, b) =>
+        new Date(b.updatedAt ?? b.publishedAt).getTime() -
+        new Date(a.updatedAt ?? a.publishedAt).getTime(),
+    )
+    .slice(0, 8);
   return (
     <aside className="rail">
       <section className="panel">
         <div className="panel-title">
-          🗞️ Tin hôm nay
+          🔥 Tin nóng
           <span className="panel-live"><span className="live-dot" /> LIVE</span>
         </div>
+        {hottest.map((item) => (
+          <Row key={item.clusterId} item={item} now={now} onOpen={onOpen} />
+        ))}
+      </section>
+
+      <section className="panel">
+        <div className="panel-title">🗞️ Tin hôm nay</div>
         {/* Tự cuộn: nhân đôi danh sách để lặp liền mạch */}
         <div className="ticker-view">
           <div className="ticker-track">
-            {[...today, ...today].map((item, i) => (
+            {[...recent, ...recent].map((item, i) => (
               <Row key={`${item.clusterId}-${i}`} item={item} now={now} onOpen={onOpen} />
             ))}
           </div>
         </div>
-      </section>
-
-      <section className="panel">
-        <div className="panel-title">⭐ Đáng tham khảo</div>
-        {refs.map((item) => (
-          <Row key={item.clusterId} item={item} now={now} onOpen={onOpen} />
-        ))}
       </section>
     </aside>
   );
