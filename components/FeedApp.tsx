@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FeedItem } from '../lib/feed/getFeed';
 import { FeedCard } from './FeedCard';
 import { HeroCard } from './HeroCard';
@@ -9,7 +9,17 @@ import { Trending } from './Trending';
 import { ReaderPanel } from './ReaderPanel';
 import { CATEGORIES, matchCategory } from '../lib/feed/category';
 
-export function FeedApp({ items, counts }: { items: FeedItem[]; counts: Record<string, number> }) {
+const BATCH = 20; // số tin xin thêm mỗi lần cuộn tới đáy
+
+export function FeedApp({
+  items: initialItems,
+  counts,
+  initialOffset,
+}: {
+  items: FeedItem[];
+  counts: Record<string, number>;
+  initialOffset: number;
+}) {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [nav, setNav] = useState('Trang chủ');
   const [source, setSource] = useState('all');
@@ -17,6 +27,47 @@ export function FeedApp({ items, counts }: { items: FeedItem[]; counts: Record<s
   const [query, setQuery] = useState('');
   const [reader, setReader] = useState<FeedItem | null>(null);
   const [now] = useState(() => new Date());
+
+  // Cuộn vô hạn: kho tin đã tải + con trỏ trang kế + trạng thái.
+  const [items, setItems] = useState<FeedItem[]>(initialItems);
+  const [nextOffset, setNextOffset] = useState(initialOffset);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [reachedEnd, setReachedEnd] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || reachedEnd) return;
+    setLoadingMore(true);
+    try {
+      const r = await fetch(`/api/feed?offset=${nextOffset}&limit=${BATCH}`);
+      const d = await r.json();
+      const incoming: FeedItem[] = Array.isArray(d.items) ? d.items : [];
+      setItems((prev) => {
+        const seen = new Set(prev.map((p) => p.clusterId));
+        return [...prev, ...incoming.filter((it) => !seen.has(it.clusterId))];
+      });
+      setNextOffset((o) => o + BATCH);
+      if (incoming.length < BATCH) setReachedEnd(true);
+    } catch {
+      // lỗi mạng tạm thời — lần cuộn sau tự thử lại
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, reachedEnd, nextOffset]);
+
+  // "Mắt cảm biến" ở đáy: tới gần là tự nạp thêm (rootMargin 600px = nạp sớm).
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const ob = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMore();
+      },
+      { rootMargin: '600px' },
+    );
+    ob.observe(el);
+    return () => ob.disconnect();
+  }, [loadMore]);
 
   // Đọc theme đã lưu khi mở trang.
   useEffect(() => {
@@ -116,6 +167,13 @@ export function FeedApp({ items, counts }: { items: FeedItem[]; counts: Record<s
           {cards.map((item) => (
             <FeedCard key={item.clusterId} item={item} now={now} onOpen={() => setReader(item)} />
           ))}
+
+          {/* Cuộn vô hạn: mắt cảm biến + trạng thái nạp thêm */}
+          <div ref={sentinelRef} className="feed-sentinel" />
+          {loadingMore && <p className="feed-more">⚡ Đang tải thêm tin…</p>}
+          {reachedEnd && !loadingMore && cards.length > 0 && (
+            <p className="feed-more feed-end">Bạn đã xem hết tin rồi 🎉</p>
+          )}
         </main>
 
         <Trending items={items} now={now} onOpen={(it) => setReader(it)} />

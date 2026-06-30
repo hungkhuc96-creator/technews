@@ -4,8 +4,11 @@ import { FeedApp } from '@/components/FeedApp';
 
 export const dynamic = 'force-dynamic';
 
+// Số cụm báo chí nạp sẵn ở trang đầu. Cuộn vô hạn sẽ xin tiếp từ offset này.
+const FIRST_PAGE = 40;
+
 export default async function Home() {
-  const items = await getFeed(createServiceClient(), 40);
+  const items = await getFeed(createServiceClient(), FIRST_PAGE);
 
   // Đếm số card mỗi nguồn (thật) cho thanh "Lọc nguồn".
   const counts: Record<string, number> = {};
@@ -14,5 +17,5 @@ export default async function Home() {
     counts[k] = (counts[k] ?? 0) + 1;
   }
 
-  return <FeedApp items={items} counts={counts} />;
+  return <FeedApp items={items} counts={counts} initialOffset={FIRST_PAGE} />;
 }

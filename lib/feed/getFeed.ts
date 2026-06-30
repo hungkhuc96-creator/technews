@@ -32,13 +32,14 @@ function avatarFor(name: string): { initial: string; color: string; logo: string
   return { initial, color: `hsl(${h % 360} 52% 45%)`, logo: logoFor(name) };
 }
 
-export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedItem[]> {
+export async function getFeed(client: SupabaseClient, limit = 30, offset = 0): Promise<FeedItem[]> {
+  // offset > 0 = "trang kế tiếp" cho cuộn vô hạn: lấy cụm báo NGUỘI HƠN theo độ nóng.
   const { data: clusters, error } = await client
     .from('clusters')
     .select('id, n_sources, source_types, heat_score, representative_post_id')
     .eq('status', 'open')
     .order('heat_score', { ascending: false })
-    .limit(limit);
+    .range(offset, offset + limit - 1);
   if (error) throw new Error(`getFeed đọc clusters lỗi: ${error.message}`);
 
   const repIds = (clusters ?? [])
@@ -140,16 +141,20 @@ export async function getFeed(client: SupabaseClient, limit = 30): Promise<FeedI
     rawHeat: it.heat,
   }));
 
-  // Ứng viên bài ĐỨNG RIÊNG (YouTube/Reddit/X/TikTok) — 7 ngày gần nhất
+  // Ứng viên bài ĐỨNG RIÊNG (YouTube/Reddit/X/TikTok) — 7 ngày gần nhất.
+  // CHỈ trộn ở TRANG ĐẦU (offset 0); các trang cuộn thêm là báo chí nguội dần,
+  // tránh lặp lại X/YouTube đã hiện ở đầu feed.
   const now = Date.now();
   const since = new Date(now - 7 * 24 * 3600 * 1000).toISOString();
-  const { data: standalone } = await client
-    .from('posts')
-    .select('id, source_type, title, text, url, published_at, image_url, metrics, author, sources(name)')
-    .neq('source_type', 'press')
-    .gte('published_at', since)
-    .order('published_at', { ascending: false })
-    .limit(200);
+  const { data: standalone } = offset === 0
+    ? await client
+        .from('posts')
+        .select('id, source_type, title, text, url, published_at, image_url, metrics, author, sources(name)')
+        .neq('source_type', 'press')
+        .gte('published_at', since)
+        .order('published_at', { ascending: false })
+        .limit(200)
+    : { data: [] as any[] };
 
   for (const p of (standalone ?? []) as any[]) {
     const ageHours = Math.max(0, (now - new Date(p.published_at).getTime()) / 3_600_000);
