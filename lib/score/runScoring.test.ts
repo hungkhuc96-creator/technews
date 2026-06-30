@@ -48,3 +48,41 @@ describe('runScoring', () => {
     expect(data!.heat_score).toBeCloseTo(pressHeat(4, 8), 5);
   }, 60000);
 });
+
+describe('runScoring — đóng cụm cũ', () => {
+  let staleId: string;
+  const NOW = new Date('2026-06-24T10:00:00.000Z');
+  const STALE_URL = 'https://example.com/score-stale1';
+
+  beforeAll(async () => {
+    await client.from('posts').delete().like('url', 'https://example.com/score-stale%');
+    await client.from('sources').delete().eq('name', 'S-Stale');
+    const t = new Date(NOW.getTime() - 10 * 24 * 3600 * 1000).toISOString(); // 10 ngày trước
+    const { data } = await client
+      .from('clusters')
+      .insert({ topic: '__stale_test__', n_sources: 2, post_count: 1,
+        first_seen: t, last_updated: t, status: 'open' })
+      .select('id').single();
+    staleId = data!.id;
+    await upsertPosts(client, [{
+      sourceType: 'press', sourceName: 'S-Stale', externalId: 'stale1',
+      title: 'tin cũ', text: '', url: STALE_URL, author: null,
+      publishedAt: t, lang: null, metrics: {},
+    }]);
+    await client.from('posts').update({ cluster_id: staleId }).eq('url', STALE_URL);
+  });
+
+  afterAll(async () => {
+    await client.from('posts').delete().like('url', 'https://example.com/score-stale%');
+    await client.from('clusters').delete().eq('id', staleId);
+    await client.from('sources').delete().eq('name', 'S-Stale');
+  });
+
+  it('cụm có bài mới nhất > 7 ngày → bị ĐÓNG (archived), không chấm điểm', async () => {
+    const res = await runScoring(client, () => NOW);
+    expect(res.closed).toBeGreaterThanOrEqual(1);
+    const { data } = await client
+      .from('clusters').select('status').eq('id', staleId).single();
+    expect(data!.status).toBe('archived');
+  }, 60000);
+});
