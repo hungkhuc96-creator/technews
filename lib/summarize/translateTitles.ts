@@ -7,11 +7,17 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 export async function runTranslateTitles(
   client: SupabaseClient,
   translateBatch: (titles: string[]) => Promise<string[]>,
+  opts: { limit?: number } = {},
 ): Promise<{ translated: number }> {
+  // CHỈ xét top cụm theo độ nóng (những cụm thật sự lên feed). Quan trọng: tránh
+  // .in() với hàng trăm UUID (URL quá dài → "fetch failed") và đỡ tốn tiền dịch.
+  const limit = opts.limit ?? 80;
   const { data: clusters, error } = await client
     .from('clusters')
     .select('id, representative_post_id')
-    .eq('status', 'open');
+    .eq('status', 'open')
+    .order('heat_score', { ascending: false })
+    .limit(limit);
   if (error) throw new Error(`runTranslateTitles đọc clusters lỗi: ${error.message}`);
 
   const ids = (clusters ?? []).map((c) => c.id);

@@ -113,11 +113,10 @@ a { color: inherit; text-decoration: none; }
 .follow-yt { font-size: 9px; color: #ff5b5b; margin-right: -4px; }
 .follow-more {
   display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-top: 2px;
-  border-radius: 9px; font-size: 13px; font-weight: 700; color: var(--accent-ink);
-  background: var(--accent); cursor: pointer; width: fit-content;
+  border-radius: 9px; font-size: 13px; font-weight: 600; color: var(--text-dim);
+  background: transparent; cursor: pointer; width: fit-content;
 }
-.follow-more.is-open { color: var(--text-dim); background: var(--surface-2); }
-.follow-more:hover { opacity: 0.9; }
+.follow-more:hover { color: var(--text); background: var(--surface); }
 
 /* ===== Category chips + new pill ===== */
 .chips {
