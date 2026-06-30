@@ -24,7 +24,7 @@ export function Trending({
   onOpen?: (item: FeedItem) => void;
 }) {
   // Tin nóng = nóng nhất theo heat; Tin hôm nay = mới nhất theo thời gian.
-  const hottest = [...items].sort((a, b) => b.heat - a.heat).slice(0, 8);
+  const hottest = [...items].sort((a, b) => b.heat - a.heat).slice(0, 5);
   const recent = [...items]
     .sort(
       (a, b) =>
