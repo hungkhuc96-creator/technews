@@ -44,7 +44,7 @@ export async function runTranslateTitles(
   let translated = 0;
   for (let i = 0; i < todo.length; i++) {
     const t = (vi[i] ?? '').trim();
-    if (!t) continue;
+    if (!t || t === titles[i]) continue; // rỗng hoặc dịch == gốc (hỏng) → không lưu
     await client.from('cluster_summaries').upsert(
       { cluster_id: todo[i].id, title_vi: t, summary_vi: '', bullets_vi: [], input_hash: '' },
       { onConflict: 'cluster_id', ignoreDuplicates: true }, // không đè dòng đã có tóm tắt

@@ -1,9 +1,13 @@
 import type { ChatFn } from './summarizeCluster';
 
-// Tạo hàm dịch CẢ LÔ tiêu đề trong 1 lần gọi Claude (trả về mảng JSON cùng thứ tự).
-// Lỗi gì cũng trả lại bản gốc (an toàn). Dùng chung cho báo chí + YouTube.
+// Dịch tối đa ngần này tiêu đề mỗi lần gọi. Lô lớn dễ tràn max_tokens → JSON cụt →
+// dịch hỏng (trả về bản gốc tiếng Anh). Chia nhỏ để mỗi lần gọi luôn đủ chỗ.
+const CHUNK = 8;
+
+// Tạo hàm dịch CẢ LÔ tiêu đề (tự chia nhỏ thành nhiều lần gọi Claude, ghép lại theo
+// đúng thứ tự). Lô con nào lỗi → giữ nguyên bản gốc lô đó. Dùng chung báo chí + YouTube.
 export function makeTitleTranslator(chat: ChatFn): (titles: string[]) => Promise<string[]> {
-  return async (titles: string[]): Promise<string[]> => {
+  const translateChunk = async (titles: string[]): Promise<string[]> => {
     if (!titles.length) return titles;
     const prompt =
       'Dịch danh sách tiêu đề công nghệ sau sang tiếng Việt tự nhiên, gọn, ' +
@@ -21,5 +25,13 @@ export function makeTitleTranslator(chat: ChatFn): (titles: string[]) => Promise
       /* dịch lỗi → giữ tiêu đề gốc */
     }
     return titles;
+  };
+
+  return async (titles: string[]): Promise<string[]> => {
+    const chunks: string[][] = [];
+    for (let i = 0; i < titles.length; i += CHUNK) chunks.push(titles.slice(i, i + CHUNK));
+    // Các lô chạy SONG SONG cho nhanh (1 trang feed chỉ vài lô).
+    const done = await Promise.all(chunks.map((ch) => translateChunk(ch)));
+    return done.flat();
   };
 }
