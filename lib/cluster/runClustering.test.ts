@@ -75,3 +75,44 @@ describe('runClustering', () => {
     expect(gptCluster!.entities).not.toContain('nvidia');
   }, 60000); // nhiều lượt gọi DB qua mạng nên cho thời gian rộng
 });
+
+describe('runClustering — chốt chặn AI (sameEvent)', () => {
+  beforeAll(async () => {
+    const { data: old } = await client
+      .from('posts').select('cluster_id').like('url', 'https://gate.example/%');
+    const oldIds = [...new Set((old ?? []).map((p) => p.cluster_id).filter(Boolean))];
+    await client.from('posts').delete().like('url', 'https://gate.example/%');
+    if (oldIds.length) await client.from('clusters').delete().in('id', oldIds);
+    await client.from('sources').delete().like('name', 'G-%');
+    // 2 tin embedding GIỐNG HỆT (cosine 1.0) → embedding sẽ đề cử gộp.
+    await upsertPosts(client, [
+      { sourceType: 'press', sourceName: 'G-A', externalId: 'x1', title: 'OpenAI ships GPT-6',
+        text: 'gpt', url: 'https://gate.example/x1', author: null,
+        publishedAt: '2026-06-24T00:00:00.000Z', lang: null, metrics: {} },
+      { sourceType: 'press', sourceName: 'G-B', externalId: 'x2', title: 'GPT-6 sales collapse',
+        text: 'gpt', url: 'https://gate.example/x2', author: null,
+        publishedAt: '2026-06-24T01:00:00.000Z', lang: null, metrics: {} },
+    ]);
+  });
+
+  afterAll(async () => {
+    const { data } = await client
+      .from('posts').select('cluster_id').like('url', 'https://gate.example/%');
+    const ids = [...new Set((data ?? []).map((p) => p.cluster_id).filter(Boolean))];
+    await client.from('posts').delete().like('url', 'https://gate.example/%');
+    if (ids.length) await client.from('clusters').delete().in('id', ids);
+    await client.from('sources').delete().like('name', 'G-%');
+  });
+
+  it('AI nói "không cùng sự kiện" → KHÔNG gộp dù embedding giống hệt', async () => {
+    const fakeEmbedSame = async () => [1, 0, 0]; // mọi tin → cùng vector
+    const sameEvent = async () => false;          // AI luôn từ chối gộp
+    await runClustering(client, { embed: fakeEmbedSame, sameEvent }, {
+      urlPrefix: 'https://gate.example/',
+    });
+    const { data: posts } = await client
+      .from('posts').select('external_id, cluster_id').like('url', 'https://gate.example/%');
+    const byId = Object.fromEntries(posts!.map((p) => [p.external_id, p.cluster_id]));
+    expect(byId.x1).not.toBe(byId.x2); // bị tách thành 2 cụm riêng
+  }, 60000);
+});

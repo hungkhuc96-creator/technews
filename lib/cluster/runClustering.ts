@@ -5,12 +5,15 @@ import { bestCluster, type ClusterCandidate } from './decide';
 export interface ClusterDeps {
   embed: (text: string) => Promise<number[]>;
   now?: () => Date;
+  // Chốt chặn AI: 2 tiêu đề có CÙNG sự kiện không. Nếu bỏ trống → chỉ dùng
+  // embedding (như cũ). Sản xuất truyền hàm thật (Claude) để chặn "cụm hố đen".
+  sameEvent?: (a: string, b: string) => Promise<boolean>;
 }
 
 const WINDOW_MS = 48 * 60 * 60 * 1000;
-// Ngưỡng giống nhau để nhập cụm. Đông cứng centroid/entities + ngưỡng cao hơn
-// để tránh "cụm hố đen" nuốt bài không liên quan.
-const JOIN_THRESHOLD = 0.86;
+// Embedding giờ chỉ LỌC ỨNG VIÊN (recall cao), AI mới là người quyết định gộp.
+// Hạ ngưỡng để bắt nhiều ứng viên hơn cho AI xét, thay vì để embedding tự loại.
+const JOIN_THRESHOLD = 0.82;
 
 export async function runClustering(
   client: SupabaseClient,
@@ -52,7 +55,7 @@ export async function runClustering(
     const since = new Date(now.getTime() - WINDOW_MS).toISOString();
     const { data: openClusters } = await client
       .from('clusters')
-      .select('id, centroid, entities, post_count')
+      .select('id, centroid, entities, post_count, representative_post_id')
       .eq('status', 'open')
       .gte('last_updated', since);
 
@@ -60,7 +63,21 @@ export async function runClustering(
       .filter((c) => Array.isArray(c.centroid))
       .map((c) => ({ id: c.id, centroid: c.centroid as number[], entities: c.entities ?? [] }));
 
-    const match = bestCluster(embedding, entities, candidates, JOIN_THRESHOLD);
+    let match = bestCluster(embedding, entities, candidates, JOIN_THRESHOLD);
+
+    // CHỐT CHẶN AI: embedding chỉ đề cử cụm gần nhất; AI xác nhận có CÙNG sự kiện
+    // không. Khác sự kiện (vd "ra mắt" vs "sụt doanh số") → huỷ gộp, tạo cụm mới.
+    if (match && deps.sameEvent) {
+      const cand = (openClusters ?? []).find((c) => c.id === match!.clusterId);
+      const repId = cand?.representative_post_id as string | undefined;
+      const { data: rep } = repId
+        ? await client.from('posts').select('title').eq('id', repId).single()
+        : { data: null };
+      const repTitle = (rep?.title as string | undefined) ?? '';
+      if (repTitle && !(await deps.sameEvent(p.title, repTitle))) {
+        match = null;
+      }
+    }
 
     if (match) {
       // 3a) Nhập cụm: centroid + entities ĐÔNG CỨNG theo bài đầu (không trôi).
