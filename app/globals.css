@@ -244,6 +244,14 @@ a { color: inherit; text-decoration: none; }
   width: 54px; height: 54px; border-radius: 999px; background: rgba(0, 0, 0, 0.6);
   display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; padding-left: 4px;
 }
+.video-thumb { cursor: pointer; }
+/* Player phát TẠI CHỖ trên feed (bấm ▶) — bám sát mép thẻ như thumbnail. */
+.video-embed {
+  margin: -18px -20px 0; border-radius: 14px 14px 0 0; overflow: hidden;
+  aspect-ratio: 16 / 9; background: #000;
+}
+.video-embed iframe { width: 100%; height: 100%; border: 0; display: block; }
+@media (max-width: 560px) { .video-embed { margin: -16px -16px 0; } }
 
 /* Thẻ X: avatar tròn + tweet + tương tác */
 .x-name { font-weight: 700; color: var(--text); font-size: 14px; }

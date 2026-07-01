@@ -1,6 +1,15 @@
+'use client';
+
+import { useState } from 'react';
 import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime, sourceLabel, compactNumber } from '../lib/feed/format';
 import { metaFor } from '../lib/feed/sourceMeta';
+
+// Lấy video ID từ link YouTube (watch?v= / shorts/ / youtu.be / embed)
+function youtubeId(url: string): string | null {
+  const m = url.match(/(?:v=|\/shorts\/|youtu\.be\/|\/embed\/)([\w-]{6,})/);
+  return m ? m[1] : null;
+}
 
 // Icon loại nguồn — DÙNG ĐÚNG bộ icon ở "Lọc nguồn" cột trái (📰 ▶ 𝕏 👽 ♪).
 function SrcLogo({ item }: { item: FeedItem }) {
@@ -49,10 +58,31 @@ function XCard({ item, ts }: { item: FeedItem; ts: string }) {
 // ===== Thẻ YouTube =====
 function YouTubeCard({ item, ts }: { item: FeedItem; ts: string }) {
   const views = item.metrics.views ? `${compactNumber(item.metrics.views)} lượt xem · ` : '';
+  const ytId = youtubeId(item.url);
+  const [playing, setPlaying] = useState(false);
   return (
     <>
-      {item.imageUrl && (
-        <div className="video-thumb">
+      {playing && ytId ? (
+        // Phát TẠI CHỖ — chặn click lan ra thẻ (không mở panel chi tiết).
+        <div className="video-embed" onClick={(e) => e.stopPropagation()}>
+          <iframe
+            src={`https://www.youtube.com/embed/${ytId}?autoplay=1`}
+            title={item.titleVi ?? item.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      ) : item.imageUrl && (
+        <div
+          className="video-thumb"
+          onClick={(e) => {
+            // Có ID → phát tại chỗ; không có → để thẻ mở chi tiết như cũ.
+            if (ytId) {
+              e.stopPropagation();
+              setPlaying(true);
+            }
+          }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="card-thumb"
