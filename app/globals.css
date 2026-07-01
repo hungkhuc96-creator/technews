@@ -303,19 +303,18 @@ a { color: inherit; text-decoration: none; }
 
 /* ===== Panel đọc bài (Reader) — bám thiết kế gốc ===== */
 .reader-overlay { position: fixed; inset: 0; z-index: 100; overflow: hidden; }
-.reader-overlay::before {
-  content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); animation: fadeIn .2s ease;
-}
+/* KHÔNG làm mờ nền: cột trái vẫn sáng, cảm giác như 1 trang nguyên vẹn. */
 .reader-panel {
-  position: absolute; top: 0; right: 0; bottom: 0; width: 66.6667%;
+  position: absolute; top: 0; right: 0; bottom: 0;
+  /* Mép trái bám sát cột trái: lề giữa (màn rộng) + padding 26 + sidebar 212 + gap 30 */
+  left: calc(max(0px, (100vw - 2160px) / 2) + 268px);
   background: var(--bg); border-left: 1px solid var(--border);
-  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.4);
+  box-shadow: -18px 0 50px rgba(0, 0, 0, 0.18);
   display: flex; flex-direction: column;
   animation: readerIn .28s cubic-bezier(.22, .61, .36, 1);
 }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes readerIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-@media (max-width: 820px) { .reader-panel { width: 100%; } }
+@media (max-width: 820px) { .reader-panel { left: 0; } }
 
 .reader-bar {
   flex: none; height: 56px; display: flex; align-items: center; gap: 14px; padding: 0 22px;

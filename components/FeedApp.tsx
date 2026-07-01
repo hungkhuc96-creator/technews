@@ -145,12 +145,6 @@ export function FeedApp({
             ))}
           </div>
 
-          {filtered.length > 0 && nav === 'Trang chủ' && source === 'all' && category === 'Tất cả' && !query.trim() && (
-            <div className="new-pill-wrap">
-              <span className="new-pill"><span className="live-dot" /> ↑ {Math.min(filtered.length, 8)} tin mới</span>
-            </div>
-          )}
-
           {filtered.length === 0 && (
             <p style={{ color: 'var(--text-faint)', padding: '40px 0', textAlign: 'center' }}>
               Không có tin khớp bộ lọc.

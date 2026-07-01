@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime, sourceLabel } from '../lib/feed/format';
 
@@ -65,11 +65,24 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
   }, [item.clusterId]);
   const hasAi = !!ai.summary || ai.bullets.length > 0;
 
+  // Mở panel → đẩy 1 mốc lịch sử. Nút Back / quẹt cạnh trên mobile sẽ POP mốc này
+  // (đóng panel) thay vì thoát cả trang. Đóng panel bằng nút thì gọi history.back()
+  // để nhả đúng mốc đã đẩy.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    window.history.pushState({ reader: true }, '');
+    const onPop = () => closeRef.current();
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+  const goBack = () => window.history.back();
+
   return (
-    <div className="reader-overlay" onClick={onClose}>
+    <div className="reader-overlay" onClick={goBack}>
       <div className="reader-panel" onClick={(e) => e.stopPropagation()}>
         <div className="reader-bar">
-          <button className="reader-back" onClick={onClose}>← Quay lại</button>
+          <button className="reader-back" onClick={goBack}>← Quay lại</button>
           <span className="reader-type">{TYPE_LABEL[type] ?? TYPE_LABEL.press}</span>
           <span className="reader-live"><span className="live-dot" /> CẬP NHẬT</span>
         </div>
