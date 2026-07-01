@@ -45,44 +45,50 @@ export async function getFeed(client: SupabaseClient, limit = 30, offset = 0): P
   const repIds = (clusters ?? [])
     .map((c) => c.representative_post_id)
     .filter((id): id is string => Boolean(id));
+  const clusterIds = (clusters ?? []).map((c) => c.id);
 
-  const { data: posts } = repIds.length
-    ? await client
-        .from('posts')
-        .select('id, title, text, url, published_at, image_url, sources(name)')
-        .in('id', repIds)
-    : { data: [] as any[] };
+  // Bài ĐỨNG RIÊNG (X/YouTube…) chỉ trộn ở trang đầu — 7 ngày gần nhất.
+  const now = Date.now();
+  const since = new Date(now - 7 * 24 * 3600 * 1000).toISOString();
+
+  // 5 truy vấn này độc lập nhau → chạy SONG SONG (Promise.all) thay vì tuần tự,
+  // cắt phần lớn thời gian chờ mạng tới Supabase (Seoul).
+  const empty = { data: [] as any[] };
+  const [
+    { data: posts }, { data: summaries }, { data: clusterImages }, { data: clusterPosts }, { data: standalone },
+  ] = await Promise.all([
+    repIds.length
+      ? client.from('posts').select('id, title, text, url, published_at, image_url, sources(name)').in('id', repIds)
+      : Promise.resolve(empty),
+    clusterIds.length
+      ? client.from('cluster_summaries').select('cluster_id, title_vi, summary_vi, bullets_vi').in('cluster_id', clusterIds)
+      : Promise.resolve(empty),
+    clusterIds.length
+      ? client.from('posts').select('cluster_id, image_url').in('cluster_id', clusterIds).not('image_url', 'is', null)
+      : Promise.resolve(empty),
+    clusterIds.length
+      ? client.from('posts').select('cluster_id, published_at, sources(name)').in('cluster_id', clusterIds)
+      : Promise.resolve(empty),
+    offset === 0
+      ? client.from('posts')
+          .select('id, source_type, title, text, url, published_at, image_url, metrics, author, sources(name)')
+          .neq('source_type', 'press').gte('published_at', since)
+          .order('published_at', { ascending: false }).limit(200)
+      : Promise.resolve(empty),
+  ]);
 
   const postById = new Map((posts ?? []).map((p: any) => [p.id, p]));
-
-  const clusterIds = (clusters ?? []).map((c) => c.id);
-  const { data: summaries } = clusterIds.length
-    ? await client
-        .from('cluster_summaries')
-        .select('cluster_id, title_vi, summary_vi, bullets_vi')
-        .in('cluster_id', clusterIds)
-    : { data: [] as any[] };
   const sumById = new Map((summaries ?? []).map((s: any) => [s.cluster_id, s]));
 
   // Ảnh cụm: ưu tiên bài đại diện, nếu không có thì lấy ảnh của BẤT KỲ bài nào
   // trong cụm (tăng độ phủ thumbnail cho cụm nhiều nguồn).
-  const { data: clusterImages } = clusterIds.length
-    ? await client
-        .from('posts')
-        .select('cluster_id, image_url')
-        .in('cluster_id', clusterIds)
-        .not('image_url', 'is', null)
-    : { data: [] as any[] };
   const imageByCluster = new Map<string, string>();
   for (const r of clusterImages ?? []) {
     if (!imageByCluster.has(r.cluster_id)) imageByCluster.set(r.cluster_id, r.image_url);
   }
 
-  // Bài của mỗi cụm: dùng để (1) tìm bài MỚI NHẤT ("độ tươi", giống runScoring)
-  // và (2) gom danh sách NGUỒN trong cụm → avatar xếp chồng trên thẻ hero.
-  const { data: clusterPosts } = clusterIds.length
-    ? await client.from('posts').select('cluster_id, published_at, sources(name)').in('cluster_id', clusterIds)
-    : { data: [] as any[] };
+  // Bài của mỗi cụm (đã lấy song song ở trên): dùng để (1) tìm bài MỚI NHẤT ("độ
+  // tươi", giống runScoring) và (2) gom danh sách NGUỒN trong cụm → avatar xếp chồng.
   const newestByCluster = new Map<string, string>();
   const sourceNamesByCluster = new Map<string, Set<string>>();
   for (const r of clusterPosts ?? []) {
@@ -141,21 +147,8 @@ export async function getFeed(client: SupabaseClient, limit = 30, offset = 0): P
     rawHeat: it.heat,
   }));
 
-  // Ứng viên bài ĐỨNG RIÊNG (YouTube/Reddit/X/TikTok) — 7 ngày gần nhất.
-  // CHỈ trộn ở TRANG ĐẦU (offset 0); các trang cuộn thêm là báo chí nguội dần,
-  // tránh lặp lại X/YouTube đã hiện ở đầu feed.
-  const now = Date.now();
-  const since = new Date(now - 7 * 24 * 3600 * 1000).toISOString();
-  const { data: standalone } = offset === 0
-    ? await client
-        .from('posts')
-        .select('id, source_type, title, text, url, published_at, image_url, metrics, author, sources(name)')
-        .neq('source_type', 'press')
-        .gte('published_at', since)
-        .order('published_at', { ascending: false })
-        .limit(200)
-    : { data: [] as any[] };
-
+  // Bài ĐỨNG RIÊNG (đã lấy song song ở trên). CHỈ trộn ở TRANG ĐẦU (offset 0); các
+  // trang cuộn thêm là báo chí nguội dần, tránh lặp lại X/YouTube đã hiện ở đầu feed.
   for (const p of (standalone ?? []) as any[]) {
     const ageHours = Math.max(0, (now - new Date(p.published_at).getTime()) / 3_600_000);
     const m = (p.metrics ?? {}) as { views?: number; upvotes?: number };
