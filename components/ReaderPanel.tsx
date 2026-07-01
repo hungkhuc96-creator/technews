@@ -156,13 +156,6 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
               <div className="reader-ai">
                 <span className="reader-ai-badge">⚡ Tóm tắt bởi AI</span>
                 {ai.summary && <p className="reader-ai-sum">{ai.summary}</p>}
-                {ai.bullets.length > 0 && (
-                  <div className="reader-ai-bullets">
-                    {ai.bullets.map((b, i) => (
-                      <div key={i} className="reader-ai-bullet"><span className="r-dot" /><span>{b}</span></div>
-                    ))}
-                  </div>
-                )}
               </div>
             ) : null}
 
