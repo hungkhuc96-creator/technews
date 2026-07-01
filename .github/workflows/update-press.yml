@@ -1,7 +1,7 @@
 name: Cập nhật báo chí (gần realtime)
 
-# Báo chí chạy DÀY: nạp + gom cụm + dịch tiêu đề + tóm tắt sẵn top-N.
-# Phần tóm tắt còn lại tạo LAZY khi người đọc bấm vào (app/api/summary).
+# Báo chí chạy DÀY: nạp + gom cụm + dịch tiêu đề + tóm tắt SẴN top-100.
+# Bấm vào bài là hiện tóm tắt ngay; phần rất sâu (ngoài top-100) vẫn lazy khi bấm.
 on:
   schedule:
     - cron: '*/15 * * * *'   # mỗi 15 phút
@@ -33,4 +33,6 @@ jobs:
       - run: npm run ingest:press      # lấy RSS báo chí
       - run: npm run process:press     # gom cụm + chấm độ nóng
       - run: npm run titles:press      # dịch tiêu đề (eager) → feed luôn tiếng Việt
-      - run: npm run summarize         # tóm tắt sẵn top-N (eager) cho hero/đầu feed
+      - run: npm run summarize         # tóm tắt SẴN top-100 (song song) → bấm là hiện ngay
+        env:
+          SUMMARIZE_LIMIT: 100
