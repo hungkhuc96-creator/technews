@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { FeedItem } from '../lib/feed/getFeed';
-import { relativeTime, sourceLabel } from '../lib/feed/format';
+import { relativeTime, sourceLabel, compactNumber } from '../lib/feed/format';
 
 const TYPE_LABEL: Record<string, string> = {
   press: '📰 Bài báo', youtube: '▶ Video', x: '𝕏 Bài đăng', reddit: '👽 Reddit', tiktok: '♪ TikTok',
@@ -33,7 +33,6 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
   const ts = relativeTime(item.updatedAt ?? item.publishedAt, now);
   const xClean = (item.authorName ?? (item.sourceName ?? '').replace('@', '')).replace(/\.(com|net)$/i, '');
   const srcName = isX ? xClean : (item.sourceName ?? 'Nguồn');
-  const nitterUrl = isX ? item.url.replace(/(?:x|twitter)\.com/, 'nitter.net') : '';
 
   // Tóm tắt AI: báo chí tạo theo yêu cầu (lazy) khi bấm vào — nếu chưa có sẵn.
   const [ai, setAi] = useState<{ summary: string | null; bullets: string[] }>({
@@ -217,14 +216,29 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
 
             {isX && (
               <>
-                {/* Box "Dịch bởi AI" — caption đã dịch sẵn lúc nạp (cùng kiểu box báo) */}
-                <div className="reader-ai">
+                {/* Box "Dịch bởi AI" — caption đã dịch sẵn lúc nạp (kiểu trầm, đồng bộ) */}
+                <div className="reader-ai reader-detail">
                   <span className="reader-ai-badge">⚡ Dịch bởi AI</span>
                   <p className="reader-ai-sum">{item.title}</p>
                 </div>
-                <div className="reader-srcs-title">🖥 TRANG GỐC</div>
-                <div className="reader-nitter">
-                  <iframe src={nitterUrl} title="Nitter — bài gốc trên X" loading="lazy" />
+                {/* Bài gốc TỰ HIỂN THỊ từ dữ liệu đã nạp — nitter.net đã chết (trả
+                    trang rỗng), không nhúng iframe bên thứ ba nữa. */}
+                <div className="reader-orig">
+                  <div className="reader-orig-head">𝕏 BÀI GỐC · {srcName}</div>
+                  {item.text && <p className="reader-orig-para">{item.text}</p>}
+                  {item.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img className="reader-x-media" src={item.imageUrl} alt="" loading="lazy" />
+                  )}
+                  {(item.metrics.likes || item.metrics.views) ? (
+                    <div className="reader-x-eng">
+                      {item.metrics.likes ? <span>♥ {compactNumber(item.metrics.likes)}</span> : null}
+                      {item.metrics.reposts ? <span>⇄ {compactNumber(item.metrics.reposts)}</span> : null}
+                      {item.metrics.comments ? <span>💬 {compactNumber(item.metrics.comments)}</span> : null}
+                      {item.metrics.views ? <span>👁 {compactNumber(item.metrics.views)}</span> : null}
+                    </div>
+                  ) : null}
+                  <div className="reader-orig-note">Xem đầy đủ (bình luận, ảnh…) qua nút “Mở bài gốc ↗” bên dưới.</div>
                 </div>
               </>
             )}
