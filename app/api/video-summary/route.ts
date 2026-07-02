@@ -3,8 +3,9 @@ import { createVideoChat } from '@/lib/summarize/geminiClient';
 import { videoSummaryById } from '@/lib/summarize/videoSummary';
 
 export const dynamic = 'force-dynamic';
-// Gemini phải "xem" cả video — có thể mất 20-50 giây cho video dài.
-export const maxDuration = 60;
+// Gemini phải "xem" cả video — video ngắn ~30s, podcast dài cả tiếng có thể mất
+// vài phút. 300s là trần của Vercel Fluid Compute (gói Hobby).
+export const maxDuration = 300;
 
 let videoChat: ReturnType<typeof createVideoChat> | null = null;
 
