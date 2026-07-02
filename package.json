@@ -17,6 +17,7 @@
     "titles:press": "node --env-file=.env.local --import tsx scripts/translate-titles.ts",
     "summarize": "node --env-file=.env.local --import tsx scripts/summarize.ts",
     "ingest:youtube": "node --env-file=.env.local --import tsx scripts/ingest-youtube.ts",
+    "summarize:videos": "node --env-file=.env.local --import tsx scripts/summarize-videos.ts",
     "ingest:reddit": "node --env-file=.env.local --import tsx scripts/ingest-reddit.ts",
     "ingest:x": "node --env-file=.env.local --import tsx scripts/ingest-x.ts"
   },

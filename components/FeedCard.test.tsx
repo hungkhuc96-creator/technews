@@ -25,6 +25,7 @@ const item: FeedItem = {
   summary: 'Tóm tắt tiếng Việt.',
   bullets: ['Ý chính một', 'Ý chính hai'],
   rising: false,
+  videoSummary: null,
 };
 
 describe('FeedCard', () => {

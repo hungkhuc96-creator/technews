@@ -70,13 +70,14 @@ export async function getFeedItem(client: SupabaseClient, id: string): Promise<F
       summary: sum?.summary_vi || null, // '' placeholder → coi như chưa có
       bullets: Array.isArray(sum?.bullets_vi) ? sum.bullets_vi : [],
       rising: false, // trang chi tiết không cần badge feed
+      videoSummary: null,
     };
   }
 
   // 2) Thử bài đứng riêng (YouTube/X/Reddit…)
   const { data: p } = await client
     .from('posts')
-    .select('id, source_type, title, text, url, published_at, image_url, metrics, author, sources(name)')
+    .select('id, source_type, title, text, url, published_at, image_url, metrics, author, video_summary_vi, sources(name)')
     .eq('id', id)
     .maybeSingle();
   if (!p) return null;
@@ -105,5 +106,6 @@ export async function getFeedItem(client: SupabaseClient, id: string): Promise<F
     summary: null,
     bullets: [],
     rising: false,
+    videoSummary: (p as { video_summary_vi?: string | null }).video_summary_vi ?? null,
   };
 }

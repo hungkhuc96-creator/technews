@@ -27,10 +27,15 @@ jobs:
           SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
           ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
           APIFY_TOKEN=${{ secrets.APIFY_TOKEN }}
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
           EOF
 
       - run: npm install --no-audit --no-fund
       - run: npm run ingest:youtube    # YouTube (kèm dịch tiêu đề)
+
+      - name: Tóm tắt sẵn ý chính video mới (bỏ qua podcast dài)
+        continue-on-error: true        # Gemini lỗi/hết hạn mức không chặn ingest
+        run: npm run summarize:videos
 
       - name: Nạp X (Apify)
         continue-on-error: true        # X lỗi không chặn các bước trên

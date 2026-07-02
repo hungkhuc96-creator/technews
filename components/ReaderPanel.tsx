@@ -86,9 +86,10 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
     }
   };
 
-  // Ý CHÍNH VIDEO: Gemini xem video YouTube — bấm nút mới tạo (lazy) + cache server.
+  // Ý CHÍNH VIDEO: đa số đã tóm tắt SẴN lúc ingest (item.videoSummary) → hiện ngay.
+  // Chưa có (podcast dài / video quá mới) thì bấm nút mới tạo (lazy) + cache server.
   // Với video đứng riêng, clusterId chính là post id.
-  const [vidSum, setVidSum] = useState<string | null>(null);
+  const [vidSum, setVidSum] = useState<string | null>(item.videoSummary ?? null);
   const [loadingVidSum, setLoadingVidSum] = useState(false);
   const loadVidSum = async () => {
     if (loadingVidSum || vidSum) return;
@@ -216,14 +217,15 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
               </>
             )}
 
+            {/* Kiểu reader-detail (nền trầm) — không nổi bật quá, đồng bộ với box video */}
             {loadingAi ? (
-              <div className="reader-ai">
+              <div className="reader-ai reader-detail">
                 <span className="reader-ai-badge">⚡ Đang tóm tắt…</span>
                 <p className="reader-ai-sum reader-ai-loading">AI đang đọc bài và tóm tắt sang tiếng Việt…</p>
               </div>
             ) : hasAi ? (
-              <div className="reader-ai">
-                <span className="reader-ai-badge">⚡ Tóm tắt bởi AI</span>
+              <div className="reader-ai reader-detail">
+                <span className="reader-ai-badge">📖 Ý chính đáng đọc</span>
                 {ai.summary && <p className="reader-ai-sum">{ai.summary}</p>}
               </div>
             ) : null}

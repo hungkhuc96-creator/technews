@@ -24,6 +24,8 @@ export interface FeedItem {
   bullets: string[];
   // Lý do hot (P2 audit): ≥3 nguồn cùng đưa tin trong 12h qua → "📈 Đang lên nhanh".
   rising: boolean;
+  // Ý chính video đã cache (tóm tắt sẵn lúc ingest) — panel hiện ngay, khỏi bấm nút.
+  videoSummary: string | null;
 }
 
 // Avatar nguồn: chữ cái đầu + màu suy ra từ tên (ổn định).
@@ -81,7 +83,7 @@ export async function getFeed(
       : Promise.resolve(empty),
     offset === 0 && sort === 'heat'
       ? client.from('posts')
-          .select('id, source_type, title, text, url, published_at, image_url, metrics, author, sources(name)')
+          .select('id, source_type, title, text, url, published_at, image_url, metrics, author, video_summary_vi, sources(name)')
           .neq('source_type', 'press').gte('published_at', since)
           .order('published_at', { ascending: false }).limit(200)
       : Promise.resolve(empty),
@@ -154,6 +156,7 @@ export async function getFeed(
         summary: sum?.summary_vi || null,
         bullets: Array.isArray(sum?.bullets_vi) ? sum.bullets_vi : [],
         rising: (recentSourcesByCluster.get(c.id)?.size ?? 0) >= 3,
+        videoSummary: null as string | null,
       } satisfies FeedItem;
     })
     .filter((x): x is FeedItem => x !== null);
@@ -202,6 +205,7 @@ export async function getFeed(
       summary: null,
       bullets: [],
       rising: false, // bài đứng riêng (X/YouTube) 1 nguồn — không áp dụng
+      videoSummary: p.video_summary_vi ?? null,
     };
     candidates.push({ item, bucket: p.source_type, rawHeat });
   }
