@@ -24,6 +24,7 @@ const item: FeedItem = {
   imageUrl: 'https://example.com/gpt.jpg',
   summary: 'Tóm tắt tiếng Việt.',
   bullets: ['Ý chính một', 'Ý chính hai'],
+  rising: false,
 };
 
 describe('FeedCard', () => {
@@ -52,6 +53,23 @@ describe('FeedCard', () => {
     expect(screen.getByText('Tóm tắt tiếng Việt.')).toBeDefined();
     rerender(<FeedCard item={{ ...item, summary: null }} now={new Date('2026-06-24T12:00:00.000Z')} />);
     expect(screen.getByText('Ý chính một')).toBeDefined();
+  });
+
+  it('badge lý do hot: rising > nóng > vừa cập nhật (chỉ hiện 1)', () => {
+    const at = new Date('2026-06-24T12:00:00.000Z');
+    // rising thắng cả hot
+    const { rerender } = render(<FeedCard item={{ ...item, rising: true }} now={at} />);
+    expect(screen.getByText(/Đang lên nhanh/)).toBeDefined();
+    expect(screen.queryByText(/🔥 Nóng/)).toBeNull();
+    // không rising, ≥3 nguồn → Nóng
+    rerender(<FeedCard item={item} now={at} />);
+    expect(screen.getByText(/🔥 Nóng/)).toBeDefined();
+    // 2 nguồn, có bài mới 1h trước → Vừa cập nhật
+    rerender(<FeedCard item={{ ...item, nSources: 2, updatedAt: '2026-06-24T11:30:00.000Z' }} now={at} />);
+    expect(screen.getByText(/Vừa cập nhật/)).toBeDefined();
+    // 1 nguồn, cũ → không badge nào
+    rerender(<FeedCard item={{ ...item, nSources: 1, updatedAt: '2026-06-23T00:00:00.000Z' }} now={at} />);
+    expect(screen.queryByText(/Đang lên nhanh|🔥 Nóng|Vừa cập nhật/)).toBeNull();
   });
 
   it('footer luôn có "Xem tin" + nhãn số nguồn (thẻ báo)', () => {

@@ -69,6 +69,7 @@ export async function getFeedItem(client: SupabaseClient, id: string): Promise<F
       imageUrl: post.image_url ?? fallbackImage,
       summary: sum?.summary_vi || null, // '' placeholder → coi như chưa có
       bullets: Array.isArray(sum?.bullets_vi) ? sum.bullets_vi : [],
+      rising: false, // trang chi tiết không cần badge feed
     };
   }
 
@@ -103,5 +104,6 @@ export async function getFeedItem(client: SupabaseClient, id: string): Promise<F
     imageUrl: imgUrl,
     summary: null,
     bullets: [],
+    rising: false,
   };
 }

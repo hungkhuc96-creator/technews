@@ -238,6 +238,10 @@ a { color: inherit; text-decoration: none; }
 }
 .meta-hot { display: inline-flex; align-items: center; gap: 4px; color: var(--heat); font-weight: 700; }
 
+/* Badge LÝ DO hot (P2 audit): đang lên nhanh (nhiều nguồn trong 12h) / vừa cập nhật */
+.meta-rising { display: inline-flex; align-items: center; gap: 4px; color: #2ecc71; font-weight: 700; }
+.meta-fresh { display: inline-flex; align-items: center; gap: 4px; color: #f5a623; font-weight: 700; }
+
 /* CTA "Xem tin/Xem video" — góc PHẢI dưới, KÍN ĐÁO (không lấn tiêu đề) */
 .see { margin-left: auto; font-weight: 600; font-size: 13px; color: var(--text-faint); white-space: nowrap; }
 .foot-info { display: inline-flex; align-items: center; gap: 8px; }

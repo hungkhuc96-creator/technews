@@ -130,9 +130,12 @@ function YouTubeCard({ item, ts }: { item: FeedItem; ts: string }) {
 }
 
 // ===== Thẻ báo chí (mặc định) =====
-function PressCard({ item, ts }: { item: FeedItem; ts: string }) {
+function PressCard({ item, ts, now }: { item: FeedItem; ts: string; now?: Date }) {
   const type = item.sourceTypes[0] ?? 'press';
   const hot = item.nSources >= 3;
+  // "Vừa cập nhật": có bài mới trong 2h và không phải tin 1 nguồn lẻ loi.
+  const updatedMs = new Date(item.updatedAt ?? item.publishedAt).getTime();
+  const fresh = item.nSources >= 2 && (now ?? new Date()).getTime() - updatedMs < 2 * 3600 * 1000;
   return (
     <>
       {item.imageUrl && (
@@ -143,7 +146,14 @@ function PressCard({ item, ts }: { item: FeedItem; ts: string }) {
         <SrcLogo item={item} />
         <span>{item.sourceName ?? 'Nguồn'}</span>
         <span>· {ts}</span>
-        {hot && <span className="meta-hot">🔥 Nóng</span>}
+        {/* LÝ DO hot — 1 badge duy nhất, ưu tiên: đang lên nhanh > nóng > vừa cập nhật */}
+        {item.rising ? (
+          <span className="meta-rising">📈 Đang lên nhanh</span>
+        ) : hot ? (
+          <span className="meta-hot">🔥 Nóng</span>
+        ) : fresh ? (
+          <span className="meta-fresh">⚡ Vừa cập nhật</span>
+        ) : null}
       </div>
       <h3 className="card-title"><TitleLink id={item.clusterId}>{item.titleVi ?? item.title}</TitleLink></h3>
       {item.summary ? (
@@ -185,7 +195,7 @@ export function FeedCard({ item, now, onOpen }: { item: FeedItem; now?: Date; on
       ) : type === 'youtube' ? (
         <YouTubeCard item={item} ts={ts} />
       ) : (
-        <PressCard item={item} ts={ts} />
+        <PressCard item={item} ts={ts} now={now} />
       )}
     </article>
   );

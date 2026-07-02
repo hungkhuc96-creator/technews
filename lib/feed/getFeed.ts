@@ -22,6 +22,8 @@ export interface FeedItem {
   imageUrl: string | null;
   summary: string | null;
   bullets: string[];
+  // Lý do hot (P2 audit): ≥3 nguồn cùng đưa tin trong 12h qua → "📈 Đang lên nhanh".
+  rising: boolean;
 }
 
 // Avatar nguồn: chữ cái đầu + màu suy ra từ tên (ổn định).
@@ -99,6 +101,9 @@ export async function getFeed(
   // tươi", giống runScoring) và (2) gom danh sách NGUỒN trong cụm → avatar xếp chồng.
   const newestByCluster = new Map<string, string>();
   const sourceNamesByCluster = new Map<string, Set<string>>();
+  // Nguồn có bài trong 12h qua — ≥3 nguồn = "📈 Đang lên nhanh" (lý do hot trên thẻ).
+  const recentSourcesByCluster = new Map<string, Set<string>>();
+  const cutoff12h = now - 12 * 3600 * 1000;
   for (const r of clusterPosts ?? []) {
     const prev = newestByCluster.get(r.cluster_id);
     if (!prev || new Date(r.published_at) > new Date(prev)) {
@@ -108,6 +113,10 @@ export async function getFeed(
     if (nm) {
       if (!sourceNamesByCluster.has(r.cluster_id)) sourceNamesByCluster.set(r.cluster_id, new Set());
       sourceNamesByCluster.get(r.cluster_id)!.add(nm);
+      if (new Date(r.published_at).getTime() >= cutoff12h) {
+        if (!recentSourcesByCluster.has(r.cluster_id)) recentSourcesByCluster.set(r.cluster_id, new Set());
+        recentSourcesByCluster.get(r.cluster_id)!.add(nm);
+      }
     }
   }
 
@@ -144,6 +153,7 @@ export async function getFeed(
         // '' là placeholder (mới dịch tiêu đề, chưa tóm tắt) → coi như chưa có.
         summary: sum?.summary_vi || null,
         bullets: Array.isArray(sum?.bullets_vi) ? sum.bullets_vi : [],
+        rising: (recentSourcesByCluster.get(c.id)?.size ?? 0) >= 3,
       } satisfies FeedItem;
     })
     .filter((x): x is FeedItem => x !== null);
@@ -191,6 +201,7 @@ export async function getFeed(
       imageUrl: imgUrl,
       summary: null,
       bullets: [],
+      rising: false, // bài đứng riêng (X/YouTube) 1 nguồn — không áp dụng
     };
     candidates.push({ item, bucket: p.source_type, rawHeat });
   }

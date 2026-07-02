@@ -41,11 +41,16 @@ describe('runScoring', () => {
   });
 
   it('tính tuổi theo bài MỚI NHẤT (8h), không theo first_seen (48h)', async () => {
-    const res = await runScoring(client, () => FIXED_NOW);
-    expect(res.scored).toBeGreaterThanOrEqual(1);
+    // topic filter: CHỈ chấm cụm test — không đầu độc điểm của cụm thật bằng FIXED_NOW quá khứ.
+    const res = await runScoring(client, () => FIXED_NOW, { topic: '__score_test__' });
+    expect(res.scored).toBe(1);
     const { data } = await client
       .from('clusters').select('heat_score').eq('id', clusterId).single();
-    expect(data!.heat_score).toBeCloseTo(pressHeat(4, 8), 5);
+    // Tín hiệu thật của cụm test: 1 nguồn có bài trong 12h (bài 8h tuổi), cụm sống 48h.
+    expect(data!.heat_score).toBeCloseTo(
+      pressHeat(4, 8, { newSources12h: 1, firstSeenAgeHours: 48 }),
+      5,
+    );
   }, 60000);
 });
 
@@ -79,7 +84,7 @@ describe('runScoring — đóng cụm cũ', () => {
   });
 
   it('cụm có bài mới nhất > 7 ngày → bị ĐÓNG (archived), không chấm điểm', async () => {
-    const res = await runScoring(client, () => NOW);
+    const res = await runScoring(client, () => NOW, { topic: '__stale_test__' });
     expect(res.closed).toBeGreaterThanOrEqual(1);
     const { data } = await client
       .from('clusters').select('status').eq('id', staleId).single();
