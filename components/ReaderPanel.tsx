@@ -109,6 +109,20 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
     }
   };
 
+  // Chia sẻ: chép link trang tin vào clipboard + hiệu ứng "✓ Đã chép" ~2s.
+  // Người dùng Ở YÊN trang (trước đây mở tab mới gây khó chịu).
+  // Hiệu ứng bật NGAY (không chờ clipboard promise — có môi trường nó treo);
+  // clipboard lỗi thì fallback prompt để người dùng tự chép.
+  const [copied, setCopied] = useState(false);
+  const copyShareLink = () => {
+    const url = `${window.location.origin}/tin/${item.clusterId}`;
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard?.writeText(url).catch(() => {
+      window.prompt('Chép link này để chia sẻ:', url);
+    });
+  };
+
   // Mở panel → đẩy 1 mốc lịch sử. Nút Back / quẹt cạnh trên mobile sẽ POP mốc này
   // (đóng panel) thay vì thoát cả trang. Đóng panel bằng nút thì gọi history.back()
   // để nhả đúng mốc đã đẩy.
@@ -129,13 +143,11 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
           <button className="reader-back" onClick={goBack}>← Quay lại</button>
           <span className="reader-type">{TYPE_LABEL[type] ?? TYPE_LABEL.press}</span>
           <span className="reader-live"><span className="live-dot" /> CẬP NHẬT</span>
-          {/* Trang riêng của tin (để copy link chia sẻ Facebook/Zalo) */}
-          <a
-            className="reader-share"
-            href={`/tin/${item.clusterId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >🔗 Chia sẻ</a>
+          {/* Chia sẻ = CHÉP link vào clipboard (dán Facebook/Zalo) — không rời trang */}
+          <button
+            className={`reader-share${copied ? ' copied' : ''}`}
+            onClick={copyShareLink}
+          >{copied ? '✓ Đã chép link' : '🔗 Chia sẻ'}</button>
         </div>
 
         <div className="reader-scroll">

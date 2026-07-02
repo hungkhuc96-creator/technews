@@ -136,6 +136,11 @@ a { color: inherit; text-decoration: none; }
 }
 .follow-more:hover { color: var(--text); background: var(--surface); }
 
+/* Dòng "…và hơn N nguồn khác" — chỉ gợi độ phủ, cố ý không liệt kê hết nguồn */
+.follow-etc {
+  padding: 8px 12px; font-size: 12.5px; color: var(--text-faint); font-style: italic;
+}
+
 /* ===== Category chips + new pill ===== */
 /* Slider: 1 hàng cuộn ngang gọn gàng (mọi màn hình), ẩn thanh cuộn */
 .chips {
@@ -363,8 +368,19 @@ a { color: inherit; text-decoration: none; }
 .reader-share {
   font-size: 13px; font-weight: 600; color: var(--text-dim); text-decoration: none;
   padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border);
+  background: none; cursor: pointer; font-family: inherit;
 }
 .reader-share:hover { color: var(--text); background: var(--surface); }
+/* Đã chép link: đổi màu accent + nảy nhẹ để biết là bấm thành công */
+.reader-share.copied {
+  color: var(--accent); border-color: var(--accent);
+  animation: sharePop 0.25s ease;
+}
+@keyframes sharePop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
 
 .reader-scroll { flex: 1; overflow-y: auto; }
 .reader-banner {
