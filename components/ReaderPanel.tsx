@@ -86,6 +86,28 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
     }
   };
 
+  // Ý CHÍNH VIDEO: Gemini xem video YouTube — bấm nút mới tạo (lazy) + cache server.
+  // Với video đứng riêng, clusterId chính là post id.
+  const [vidSum, setVidSum] = useState<string | null>(null);
+  const [loadingVidSum, setLoadingVidSum] = useState(false);
+  const loadVidSum = async () => {
+    if (loadingVidSum || vidSum) return;
+    setLoadingVidSum(true);
+    try {
+      const r = await fetch('/api/video-summary', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ postId: item.clusterId }),
+      });
+      const d = (await r.json()) as { summary?: string | null };
+      setVidSum(d.summary ?? null);
+    } catch {
+      /* lỗi mạng — bấm lại sẽ thử lại */
+    } finally {
+      setLoadingVidSum(false);
+    }
+  };
+
   // Mở panel → đẩy 1 mốc lịch sử. Nút Back / quẹt cạnh trên mobile sẽ POP mốc này
   // (đóng panel) thay vì thoát cả trang. Đóng panel bằng nút thì gọi history.back()
   // để nhả đúng mốc đã đẩy.
@@ -160,6 +182,25 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
                 <span className="reader-play">▶</span>
               </a>
             ))}
+
+            {/* Ý chính video — Gemini XEM video rồi rút 4-6 ý; bấm mới tạo, cache mãi */}
+            {isVideo && (
+              vidSum ? (
+                <div className="reader-ai reader-detail">
+                  <span className="reader-ai-badge">📖 Ý chính video</span>
+                  <ul className="card-bullets">
+                    {vidSum.split(/\n+/).map((line, i) => {
+                      const t = line.replace(/^-\s*/, '').trim();
+                      return t ? <li key={i}>{t}</li> : null;
+                    })}
+                  </ul>
+                </div>
+              ) : (
+                <button className="detail-btn" onClick={loadVidSum} disabled={loadingVidSum}>
+                  {loadingVidSum ? '⚡ AI đang xem video… (có thể mất ~30 giây)' : '📖 Xem ý chính video'}
+                </button>
+              )
+            )}
 
             {isX && (
               <>
