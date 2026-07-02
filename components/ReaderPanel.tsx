@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime, sourceLabel, compactNumber } from '../lib/feed/format';
+import { TweetEmbed } from './TweetEmbed';
 
 const TYPE_LABEL: Record<string, string> = {
   press: '📰 Bài báo', youtube: '▶ Video', x: '𝕏 Bài đăng', reddit: '👽 Reddit', tiktok: '♪ TikTok',
@@ -221,25 +222,27 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
                   <span className="reader-ai-badge">⚡ Dịch bởi AI</span>
                   <p className="reader-ai-sum">{item.title}</p>
                 </div>
-                {/* Bài gốc TỰ HIỂN THỊ từ dữ liệu đã nạp — nitter.net đã chết (trả
-                    trang rỗng), không nhúng iframe bên thứ ba nữa. */}
-                <div className="reader-orig">
-                  <div className="reader-orig-head">𝕏 BÀI GỐC · {srcName}</div>
-                  {item.text && <p className="reader-orig-para">{item.text}</p>}
-                  {item.imageUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img className="reader-x-media" src={item.imageUrl} alt="" loading="lazy" />
-                  )}
-                  {(item.metrics.likes || item.metrics.views) ? (
-                    <div className="reader-x-eng">
-                      {item.metrics.likes ? <span>♥ {compactNumber(item.metrics.likes)}</span> : null}
-                      {item.metrics.reposts ? <span>⇄ {compactNumber(item.metrics.reposts)}</span> : null}
-                      {item.metrics.comments ? <span>💬 {compactNumber(item.metrics.comments)}</span> : null}
-                      {item.metrics.views ? <span>👁 {compactNumber(item.metrics.views)}</span> : null}
-                    </div>
-                  ) : null}
-                  <div className="reader-orig-note">Xem đầy đủ (bình luận, ảnh…) qua nút “Mở bài gốc ↗” bên dưới.</div>
-                </div>
+                {/* Tweet THẬT qua widget chính thức của X (nitter đã chết hết —
+                    xem TweetEmbed). Widget lỗi → rơi về box tự dựng bên trong. */}
+                <TweetEmbed url={item.url}>
+                  <div className="reader-orig">
+                    <div className="reader-orig-head">𝕏 BÀI GỐC · {srcName}</div>
+                    {item.text && <p className="reader-orig-para">{item.text}</p>}
+                    {item.imageUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img className="reader-x-media" src={item.imageUrl} alt="" loading="lazy" />
+                    )}
+                    {(item.metrics.likes || item.metrics.views) ? (
+                      <div className="reader-x-eng">
+                        {item.metrics.likes ? <span>♥ {compactNumber(item.metrics.likes)}</span> : null}
+                        {item.metrics.reposts ? <span>⇄ {compactNumber(item.metrics.reposts)}</span> : null}
+                        {item.metrics.comments ? <span>💬 {compactNumber(item.metrics.comments)}</span> : null}
+                        {item.metrics.views ? <span>👁 {compactNumber(item.metrics.views)}</span> : null}
+                      </div>
+                    ) : null}
+                    <div className="reader-orig-note">Xem đầy đủ (bình luận, ảnh…) qua nút “Mở bài gốc ↗” bên dưới.</div>
+                  </div>
+                </TweetEmbed>
               </>
             )}
 

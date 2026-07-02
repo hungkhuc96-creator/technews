@@ -449,7 +449,12 @@ a { color: inherit; text-decoration: none; }
 .reader-xcaption { margin: 0 0 6px; font-size: 19px; line-height: 1.5; color: var(--text); }
 .reader-translating { font-size: 12px; color: var(--text-faint); margin-bottom: 8px; }
 /* Box nitter — nhúng bài gốc trên X */
-/* Bài X gốc tự hiển thị (nitter.net đã chết — không nhúng iframe ngoài nữa) */
+/* Widget tweet chính thức của X — căn giữa, không tràn; loading nhẹ nhàng */
+.tweet-embed { margin-bottom: 8px; }
+.tweet-embed .twitter-tweet { margin: 0 auto !important; }
+.tweet-embed-loading { padding: 14px; font-size: 13.5px; color: var(--text-faint); animation: aiPulse 1.2s ease-in-out infinite; }
+
+/* Bài X gốc tự hiển thị (fallback khi widget X lỗi) */
 .reader-x-media { width: 100%; border-radius: 11px; margin: 4px 0 10px; display: block; }
 .reader-x-eng { display: flex; gap: 16px; font-size: 13.5px; color: var(--text-dim); margin-bottom: 10px; }
 
