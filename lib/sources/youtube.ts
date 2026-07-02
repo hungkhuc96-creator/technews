@@ -13,10 +13,15 @@ const parser = new Parser({
 });
 
 // Rút channelId (UC...) từ HTML trang kênh YouTube.
+// QUAN TRỌNG: phải ưu tiên marker CHÍNH CHỦ của kênh (externalId / link canonical /
+// itemprop) — "channelId" chung chung xuất hiện nhiều lần trong HTML và cái đầu tiên
+// có thể là KÊNH KHÁC được giới thiệu (vd trang MKBHD từng giải nhầm ra "The Studio").
 export function resolveChannelId(html: string): string | null {
   const m =
-    /"channelId":"(UC[\w-]+)"/.exec(html) ??
-    /itemprop="identifier"\s+content="(UC[\w-]+)"/.exec(html);
+    /"externalId":"(UC[\w-]+)"/.exec(html) ??
+    /rel="canonical"\s+href="https:\/\/www\.youtube\.com\/channel\/(UC[\w-]+)"/.exec(html) ??
+    /itemprop="identifier"\s+content="(UC[\w-]+)"/.exec(html) ??
+    /"channelId":"(UC[\w-]+)"/.exec(html);
   return m ? m[1] : null;
 }
 

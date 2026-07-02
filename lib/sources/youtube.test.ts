@@ -14,6 +14,17 @@ describe('resolveChannelId', () => {
     expect(resolveChannelId('x "channelId":"UCxyz789" y')).toBe('UCxyz789');
     expect(resolveChannelId('không có gì')).toBeNull();
   });
+
+  it('ưu tiên externalId/canonical của CHÍNH kênh — không vớ "channelId" của kênh giới thiệu', () => {
+    // Trang MKBHD từng chứa "channelId" của kênh phụ (The Studio) ĐỨNG TRƯỚC id chính chủ.
+    const html =
+      '"channelId":"UCkenhphu000" ... "externalId":"UCchinhchu11" ... ' +
+      '<link rel="canonical" href="https://www.youtube.com/channel/UCchinhchu11">';
+    expect(resolveChannelId(html)).toBe('UCchinhchu11');
+    // Không có externalId thì lấy theo link canonical.
+    const html2 = '"channelId":"UCkenhphu000" <link rel="canonical" href="https://www.youtube.com/channel/UCcanonical1">';
+    expect(resolveChannelId(html2)).toBe('UCcanonical1');
+  });
 });
 
 describe('parseYoutubeFeed', () => {
