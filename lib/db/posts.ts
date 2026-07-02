@@ -52,3 +52,30 @@ export async function upsertPosts(
   if (error) throw new Error(`upsertPosts lỗi: ${error.message}`);
   return data?.length ?? 0;
 }
+
+// Cập nhật LẠI metrics (views/upvotes...) cho bài ĐÃ tồn tại — upsertPosts cố tình
+// ignoreDuplicates để không đè tiêu đề đã dịch, nên metrics bị "đóng băng" tại lần
+// crawl đầu (lúc video mới đăng, view còn thấp). Hàm này chỉ đụng cột metrics.
+// Chỉ bài trong cửa sổ sinceDays (mặc định 7 ngày — đúng cửa sổ trộn feed) để đỡ tốn query.
+export async function refreshMetrics(
+  client: SupabaseClient,
+  posts: NormalizedPost[],
+  sinceDays = 7,
+): Promise<number> {
+  const cutoff = Date.now() - sinceDays * 24 * 3600 * 1000;
+  const targets = posts.filter(
+    (p) => Object.keys(p.metrics).length > 0 && new Date(p.publishedAt).getTime() >= cutoff,
+  );
+  let updated = 0;
+  for (const p of targets) {
+    const { data, error } = await client
+      .from('posts')
+      .update({ metrics: p.metrics })
+      .eq('source_type', p.sourceType)
+      .eq('external_id', p.externalId)
+      .select('id');
+    if (error) throw new Error(`refreshMetrics lỗi: ${error.message}`);
+    updated += data?.length ?? 0;
+  }
+  return updated;
+}

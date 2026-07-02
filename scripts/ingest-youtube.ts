@@ -1,5 +1,5 @@
 import { createServiceClient } from '../lib/db/client.js';
-import { upsertPosts } from '../lib/db/posts.js';
+import { upsertPosts, refreshMetrics } from '../lib/db/posts.js';
 import { ingestYoutube } from '../lib/sources/ingestYoutube.js';
 import { YOUTUBE_SOURCES } from '../lib/sources/youtubeSeeds.js';
 import { createChat } from '../lib/summarize/llmClient.js';
@@ -32,6 +32,8 @@ async function main() {
   const result = await ingestYoutube(YOUTUBE_SOURCES, {
     upsert: (posts) => upsertPosts(client, posts),
     translateTitles,
+    // Làm tươi lượt xem video đã có trong DB (7 ngày gần nhất) → ranking đúng độ hot.
+    refreshMetrics: (posts) => refreshMetrics(client, posts),
   });
   console.log('Ingest YouTube xong:', result);
 }

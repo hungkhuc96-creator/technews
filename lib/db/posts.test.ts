@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createServiceClient } from './client';
-import { upsertPosts } from './posts';
+import { upsertPosts, refreshMetrics } from './posts';
 import type { NormalizedPost } from '../types';
 
 const client = createServiceClient();
@@ -44,5 +44,54 @@ describe('upsertPosts', () => {
       .select('*', { count: 'exact', head: true })
       .like('url', 'https://example.com/%');
     expect(count).toBe(3); // a1,a2,a3 — a1 không nhân đôi
+  });
+});
+
+describe('refreshMetrics', () => {
+  function ytPost(externalId: string, views: number, publishedAt: string): NormalizedPost {
+    return {
+      sourceType: 'youtube',
+      sourceName: 'Test YT Channel',
+      externalId,
+      title: 'Video thử nghiệm (đã dịch)',
+      text: 'Original title',
+      url: `https://example.com/yt-${externalId}`,
+      author: null,
+      publishedAt,
+      lang: null,
+      metrics: views > 0 ? { views } : {},
+    };
+  }
+  const recent = new Date(Date.now() - 2 * 3600e3).toISOString();      // 2 giờ trước
+  const old = new Date(Date.now() - 30 * 24 * 3600e3).toISOString();   // 30 ngày trước
+
+  beforeAll(async () => {
+    await client.from('posts').delete().like('url', 'https://example.com/yt-%');
+    await client.from('sources').delete().eq('name', 'Test YT Channel');
+    await upsertPosts(client, [ytPost('v1', 100, recent), ytPost('v2', 100, old)]);
+  });
+
+  afterAll(async () => {
+    await client.from('posts').delete().like('url', 'https://example.com/yt-%');
+    await client.from('sources').delete().eq('name', 'Test YT Channel');
+  });
+
+  it('cập nhật views cho bài trong cửa sổ, KHÔNG đụng title đã dịch, bỏ qua bài quá cũ', async () => {
+    const n = await refreshMetrics(client, [ytPost('v1', 99999, recent), ytPost('v2', 99999, old)]);
+    expect(n).toBe(1); // chỉ v1 (trong 7 ngày)
+
+    const { data } = await client
+      .from('posts')
+      .select('external_id, title, metrics')
+      .like('url', 'https://example.com/yt-%')
+      .order('external_id');
+    expect(data![0].metrics).toEqual({ views: 99999 });               // v1 tươi lại
+    expect(data![0].title).toBe('Video thử nghiệm (đã dịch)');        // title không bị đè
+    expect(data![1].metrics).toEqual({ views: 100 });                 // v2 quá cũ → giữ nguyên
+  });
+
+  it('bài không có metrics thì bỏ qua (không update rỗng)', async () => {
+    const n = await refreshMetrics(client, [ytPost('v1', 0, recent)]);
+    expect(n).toBe(0);
   });
 });

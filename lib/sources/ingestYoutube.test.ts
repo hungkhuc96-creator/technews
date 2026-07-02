@@ -27,6 +27,33 @@ describe('ingestYoutube', () => {
     expect(inserted[0].sourceType).toBe('youtube');
   });
 
+  it('gọi refreshMetrics với các bài đã parse (làm tươi lượt xem)', async () => {
+    const refreshed: NormalizedPost[] = [];
+    const result = await ingestYoutube(
+      [{ name: 'MKBHD', channelUrl: 'https://www.youtube.com/@mkbhd' }],
+      {
+        fetchImpl: fakeFetch,
+        upsert: async (p) => p.length,
+        refreshMetrics: async (p) => { refreshed.push(...p); return p.length; },
+      },
+    );
+    expect(result.fetched).toBe(2);
+    expect(refreshed).toHaveLength(2); // nhận đủ bài để làm tươi metrics
+  });
+
+  it('refreshMetrics lỗi thì KHÔNG làm hỏng ingest (vẫn đếm inserted)', async () => {
+    const result = await ingestYoutube(
+      [{ name: 'MKBHD', channelUrl: 'https://www.youtube.com/@mkbhd' }],
+      {
+        fetchImpl: fakeFetch,
+        upsert: async (p) => p.length,
+        refreshMetrics: async () => { throw new Error('db sập'); },
+      },
+    );
+    expect(result.inserted).toBe(2);
+    expect(result.failedSources).toEqual([]);
+  });
+
   it('kênh không giải được channelId thì bỏ qua (degrade)', async () => {
     const noId = (async () => new Response('không có id', { status: 200 })) as typeof fetch;
     const result = await ingestYoutube(

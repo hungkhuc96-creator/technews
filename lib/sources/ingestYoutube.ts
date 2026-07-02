@@ -8,6 +8,9 @@ export interface YtIngestDeps {
   // Dịch tiêu đề video sang tiếng Việt (theo LÔ — 1 lần gọi cho cả kênh).
   // Khi có: title = bản dịch tiếng Việt, text = tiêu đề gốc tiếng Anh.
   translateTitles?: (titles: string[]) => Promise<string[]>;
+  // Cập nhật LẠI lượt xem cho video ĐÃ có trong DB (upsert bỏ qua bài trùng nên
+  // metrics đóng băng tại lần crawl đầu) — xếp hạng phản ánh view mới nhất.
+  refreshMetrics?: (posts: NormalizedPost[]) => Promise<number>;
 }
 
 export async function ingestYoutube(
@@ -40,6 +43,14 @@ export async function ingestYoutube(
         }
       }
       inserted += await deps.upsert(posts);
+      // Sau upsert (bài trùng bị bỏ qua) → làm tươi lượt xem của các bài đã tồn tại.
+      if (deps.refreshMetrics) {
+        try {
+          await deps.refreshMetrics(posts);
+        } catch (err) {
+          console.warn(`[ingestYoutube] refreshMetrics "${source.name}" lỗi (bỏ qua):`, err);
+        }
+      }
     } catch (err) {
       console.warn(`[ingestYoutube] bỏ qua "${source.name}":`, err);
       failedSources.push(source.name);
