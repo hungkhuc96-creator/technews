@@ -17,7 +17,8 @@ const SOURCES: { key: string; icon: string; label: string }[] = [
   { key: 'tiktok', icon: '♪', label: 'TikTok' },
 ];
 
-// Danh sách "Theo dõi" (nguồn báo) — tĩnh, lấy từ thiết kế.
+// Danh sách "Theo dõi" — ĐÚNG các báo đang crawl thật (lib/sources/seeds.ts).
+// Đừng thêm tên ở đây nếu chưa thêm nguồn RSS thật, kẻo UI "hứa" thứ không có.
 const FOLLOWS = [
   { name: 'The Verge', initial: 'V', color: '#5b34da' },
   { name: '9to5Mac', initial: '9', color: '#0a84ff' },
@@ -25,20 +26,12 @@ const FOLLOWS = [
   { name: 'Engadget', initial: 'E', color: '#2d8c8c' },
   { name: 'MacRumors', initial: 'M', color: '#e0244b' },
   { name: 'Android Authority', initial: 'A', color: '#3ddc84' },
-  { name: 'GSMArena', initial: 'G', color: '#cf2e2e' },
   { name: 'TechCrunch', initial: 'T', color: '#1d8f3a' },
   { name: 'Ars Technica', initial: 'r', color: '#ff4e00' },
   { name: "Tom's Hardware", initial: 'H', color: '#b5132b' },
-  { name: 'The Information', initial: 'i', color: '#ec4d2c' },
   { name: 'CNET', initial: 'C', color: '#d6002a' },
-  { name: 'WCCFTech', initial: 'W', color: '#d33a2c' },
   { name: 'Windows Central', initial: 'w', color: '#0078d4' },
-  { name: 'Wired', initial: 'x', color: '#262626' },
-  { name: 'BGR', initial: 'B', color: '#222222' },
-  { name: 'Macworld', initial: 'm', color: '#c98a00' },
-  { name: 'NotebookCheck', initial: 'N', color: '#2e7d32' },
   { name: 'AndroidPolice', initial: 'p', color: '#2bb24c' },
-  { name: 'Gizmochina', initial: 'z', color: '#e0531a' },
 ];
 
 // Kênh YouTube theo dõi (avatar lấy qua unavatar theo handle).

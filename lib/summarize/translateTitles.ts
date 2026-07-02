@@ -1,44 +1,56 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-// Dịch tiêu đề (eager) cho các cụm báo chí đang mở mà CHƯA có title_vi.
+// Dịch tiêu đề (eager) cho MỌI cụm báo chí đang mở mà CHƯA có title_vi — người
+// đọc không bao giờ gặp tiêu đề tiếng Anh, kể cả khi cuộn sâu. Mỗi lượt cron chỉ
+// còn cụm MỚI nên rẻ; backfill lần đầu dịch một thể.
 // Ghi 1 dòng cluster_summaries với title_vi + summary rỗng (placeholder) — phần
-// tóm tắt đầy đủ sẽ tạo sau (eager top-N hoặc lazy lúc bấm). Vì summary_vi/input_hash
-// là NOT NULL nên dùng chuỗi rỗng làm placeholder (đọc ra sẽ chuẩn hóa ''→null).
+// tóm tắt đầy đủ sẽ tạo sau. summary_vi/input_hash NOT NULL nên dùng '' làm
+// placeholder (đọc ra chuẩn hóa ''→null).
 export async function runTranslateTitles(
   client: SupabaseClient,
   translateBatch: (titles: string[]) => Promise<string[]>,
   opts: { limit?: number } = {},
 ): Promise<{ translated: number }> {
-  // CHỈ xét top cụm theo độ nóng (những cụm thật sự lên feed). Quan trọng: tránh
-  // .in() với hàng trăm UUID (URL quá dài → "fetch failed") và đỡ tốn tiền dịch.
-  const limit = opts.limit ?? 80;
-  const { data: clusters, error } = await client
-    .from('clusters')
-    .select('id, representative_post_id')
-    .eq('status', 'open')
-    .order('heat_score', { ascending: false })
-    .limit(limit);
-  if (error) throw new Error(`runTranslateTitles đọc clusters lỗi: ${error.message}`);
+  // Đọc TẤT CẢ cụm mở theo trang (Supabase trả tối đa 1000 dòng/truy vấn).
+  const clusters: { id: string; representative_post_id: string | null }[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await client
+      .from('clusters')
+      .select('id, representative_post_id')
+      .eq('status', 'open')
+      .order('heat_score', { ascending: false })
+      .range(from, from + 999);
+    if (error) throw new Error(`runTranslateTitles đọc clusters lỗi: ${error.message}`);
+    clusters.push(...(data ?? []));
+    if (!data || data.length < 1000) break;
+  }
+  // opts.limit: cho phép giới hạn (test / chạy thử); mặc định dịch hết.
+  const scope = opts.limit ? clusters.slice(0, opts.limit) : clusters;
+  if (!scope.length) return { translated: 0 };
 
-  const ids = (clusters ?? []).map((c) => c.id);
-  if (!ids.length) return { translated: 0 };
+  // Cụm nào ĐÃ có title_vi — hỏi theo lô 100 id (URL .in() quá dài sẽ "fetch failed").
+  const haveTitle = new Set<string>();
+  for (let i = 0; i < scope.length; i += 100) {
+    const ids = scope.slice(i, i + 100).map((c) => c.id);
+    const { data } = await client
+      .from('cluster_summaries')
+      .select('cluster_id, title_vi')
+      .in('cluster_id', ids);
+    for (const e of data ?? []) if (e.title_vi) haveTitle.add(e.cluster_id);
+  }
 
-  const { data: existing } = await client
-    .from('cluster_summaries')
-    .select('cluster_id, title_vi')
-    .in('cluster_id', ids);
-  const haveTitle = new Set((existing ?? []).filter((e) => e.title_vi).map((e) => e.cluster_id));
-
-  const todo = (clusters ?? []).filter(
-    (c) => !haveTitle.has(c.id) && c.representative_post_id,
-  );
+  const todo = scope.filter((c) => !haveTitle.has(c.id) && c.representative_post_id);
   if (!todo.length) return { translated: 0 };
 
-  const repIds = todo.map((c) => c.representative_post_id);
-  const { data: posts } = await client.from('posts').select('id, title').in('id', repIds);
-  const titleById = new Map((posts ?? []).map((p) => [p.id, p.title as string]));
+  // Tiêu đề gốc của bài đại diện — cũng hỏi theo lô.
+  const titleById = new Map<string, string>();
+  for (let i = 0; i < todo.length; i += 100) {
+    const repIds = todo.slice(i, i + 100).map((c) => c.representative_post_id!);
+    const { data } = await client.from('posts').select('id, title').in('id', repIds);
+    for (const p of data ?? []) titleById.set(p.id, p.title as string);
+  }
 
-  const titles = todo.map((c) => titleById.get(c.representative_post_id) ?? '');
+  const titles = todo.map((c) => titleById.get(c.representative_post_id!) ?? '');
   const vi = await translateBatch(titles);
 
   let translated = 0;

@@ -7,8 +7,8 @@ const client = createServiceClient();
 let clusterId: string;
 const URL = 'https://example.com/sum-1';
 
-const fakeChat = async () =>
-  '{"title":"Tiêu đề thử","summary":"Bản tóm tắt thử nghiệm.","bullets":["Ý một","Ý hai"]}';
+// Prompt mới chỉ yêu cầu title + summary (bullets đã bỏ — UI không hiển thị).
+const fakeChat = async () => '{"title":"Tiêu đề thử","summary":"Bản tóm tắt thử nghiệm."}';
 
 describe('runSummarize', () => {
   beforeAll(async () => {
@@ -44,7 +44,7 @@ describe('runSummarize', () => {
       .from('cluster_summaries').select('title_vi, summary_vi, bullets_vi').eq('cluster_id', clusterId).single();
     expect(data!.title_vi).toBe('Tiêu đề thử');
     expect(data!.summary_vi).toBe('Bản tóm tắt thử nghiệm.');
-    expect(data!.bullets_vi).toEqual(['Ý một', 'Ý hai']);
+    expect(data!.bullets_vi).toEqual([]); // không sinh bullets nữa
   }, 60000);
 
   it('chạy lại không gọi AI nữa nếu cụm không đổi (cache theo input_hash)', async () => {

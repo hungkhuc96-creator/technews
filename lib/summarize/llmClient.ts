@@ -12,6 +12,9 @@ export function createChat(): ChatFn {
     const res = await client.messages.create({
       model,
       max_tokens: 1024,
+      // Toàn bộ tác vụ là factual (dịch/tóm tắt/so khớp) → temperature thấp cho
+      // ổn định, ít "sáng tác".
+      temperature: 0.2,
       messages: [{ role: 'user', content: prompt }],
     });
     return res.content

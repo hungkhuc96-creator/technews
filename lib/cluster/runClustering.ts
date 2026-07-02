@@ -11,9 +11,25 @@ export interface ClusterDeps {
 }
 
 const WINDOW_MS = 48 * 60 * 60 * 1000;
-// Embedding giờ chỉ LỌC ỨNG VIÊN (recall cao), AI mới là người quyết định gộp.
-// Hạ ngưỡng để bắt nhiều ứng viên hơn cho AI xét, thay vì để embedding tự loại.
+// Embedding chỉ LỌC ỨNG VIÊN (recall cao), AI mới là người quyết định gộp.
 const JOIN_THRESHOLD = 0.82;
+// Giống nhau tới mức này thì gộp thẳng, KHỎI hỏi AI (tiết kiệm ~70% lượt gọi).
+// AI chỉ phân xử "vùng xám" 0.82–0.93 — nơi embedding hay nhầm khác-sự-kiện.
+const AUTO_MERGE = 0.93;
+// Mỗi lượt chạy xử lý tối đa ngần này bài (tránh dính trần 1000 dòng của Supabase
+// một cách IM LẶNG; bài dư tự xử lý ở lượt cron sau).
+const BATCH_LIMIT = 500;
+
+// Cụm giữ trong bộ nhớ suốt 1 lượt chạy — tránh fetch lại toàn bộ cụm (kèm vector
+// centroid rất nặng) cho TỪNG bài như trước.
+interface MemCluster {
+  id: string;
+  centroid: number[];
+  entities: string[];
+  postCount: number;
+  repId: string | null;
+  lastUpdated: number;
+}
 
 export async function runClustering(
   client: SupabaseClient,
@@ -25,17 +41,54 @@ export async function runClustering(
   let created = 0;
   let updated = 0;
 
-  // Lấy các post báo chí chưa gán cụm, cũ trước (để cụm hình thành theo thời gian).
-  // opts.urlPrefix dùng để giới hạn phạm vi (vd test chỉ chạy trên tin của nó).
+  // Bài báo chưa gán cụm, cũ trước (cụm hình thành theo thời gian).
   let query = client
     .from('posts')
     .select('id, source_id, source_type, title, text, published_at, embedding, entities')
     .eq('source_type', 'press')
     .is('cluster_id', null)
-    .order('published_at', { ascending: true });
+    .order('published_at', { ascending: true })
+    .limit(BATCH_LIMIT);
   if (opts.urlPrefix) query = query.like('url', `${opts.urlPrefix}%`);
   const { data: posts, error } = await query;
   if (error) throw new Error(`runClustering đọc posts lỗi: ${error.message}`);
+
+  // Nạp cụm mở (cập nhật trong 48h) MỘT LẦN — phân trang vì centroid nặng và
+  // Supabase trả tối đa 1000 dòng/truy vấn.
+  const since = now.getTime() - WINDOW_MS;
+  const mem: MemCluster[] = [];
+  for (let from = 0; ; from += 500) {
+    const { data: batch } = await client
+      .from('clusters')
+      .select('id, centroid, entities, post_count, representative_post_id, last_updated')
+      .eq('status', 'open')
+      .gte('last_updated', new Date(since).toISOString())
+      .range(from, from + 499);
+    for (const c of batch ?? []) {
+      if (!Array.isArray(c.centroid)) continue;
+      mem.push({
+        id: c.id,
+        centroid: c.centroid as number[],
+        entities: c.entities ?? [],
+        postCount: c.post_count as number,
+        repId: (c.representative_post_id as string | null) ?? null,
+        lastUpdated: new Date(c.last_updated).getTime(),
+      });
+    }
+    if (!batch || batch.length < 500) break;
+  }
+
+  // Tiêu đề bài đại diện (cho câu hỏi AI) — nhớ lại để khỏi hỏi DB lặp.
+  const repTitleCache = new Map<string, string>();
+  const repTitle = async (c: MemCluster): Promise<string> => {
+    if (!c.repId) return '';
+    const hit = repTitleCache.get(c.id);
+    if (hit !== undefined) return hit;
+    const { data } = await client.from('posts').select('title').eq('id', c.repId).maybeSingle();
+    const t = (data?.title as string | undefined) ?? '';
+    repTitleCache.set(c.id, t);
+    return t;
+  };
 
   for (const p of posts ?? []) {
     processed++;
@@ -51,53 +104,40 @@ export async function runClustering(
         : extractEntities(p.title);
     await client.from('posts').update({ embedding, entities }).eq('id', p.id);
 
-    // 2) Ứng viên: cụm đang mở, cập nhật trong 48h
-    const since = new Date(now.getTime() - WINDOW_MS).toISOString();
-    const { data: openClusters } = await client
-      .from('clusters')
-      .select('id, centroid, entities, post_count, representative_post_id')
-      .eq('status', 'open')
-      .gte('last_updated', since);
-
-    const candidates: ClusterCandidate[] = (openClusters ?? [])
-      .filter((c) => Array.isArray(c.centroid))
-      .map((c) => ({ id: c.id, centroid: c.centroid as number[], entities: c.entities ?? [] }));
+    // 2) Ứng viên từ cache (cụm còn trong cửa sổ 48h)
+    const candidates: ClusterCandidate[] = mem
+      .filter((c) => c.lastUpdated >= since)
+      .map((c) => ({ id: c.id, centroid: c.centroid, entities: c.entities }));
 
     let match = bestCluster(embedding, entities, candidates, JOIN_THRESHOLD);
 
-    // CHỐT CHẶN AI: embedding chỉ đề cử cụm gần nhất; AI xác nhận có CÙNG sự kiện
-    // không. Khác sự kiện (vd "ra mắt" vs "sụt doanh số") → huỷ gộp, tạo cụm mới.
-    if (match && deps.sameEvent) {
-      const cand = (openClusters ?? []).find((c) => c.id === match!.clusterId);
-      const repId = cand?.representative_post_id as string | undefined;
-      const { data: rep } = repId
-        ? await client.from('posts').select('title').eq('id', repId).single()
-        : { data: null };
-      const repTitle = (rep?.title as string | undefined) ?? '';
-      if (repTitle && !(await deps.sameEvent(p.title, repTitle))) {
-        match = null;
-      }
+    // 3) CHỐT CHẶN AI — chỉ hỏi ở "vùng xám": đủ giống để nghi, chưa đủ để chắc.
+    if (match && match.score < AUTO_MERGE && deps.sameEvent) {
+      const cand = mem.find((c) => c.id === match!.clusterId)!;
+      const t = await repTitle(cand);
+      if (t && !(await deps.sameEvent(p.title, t))) match = null;
     }
 
     if (match) {
-      // 3a) Nhập cụm: centroid + entities ĐÔNG CỨNG theo bài đầu (không trôi).
-      // Chỉ cập nhật số đếm + nguồn.
-      const cluster = (openClusters ?? []).find((c) => c.id === match.clusterId)!;
-      await client.from('posts').update({ cluster_id: match.clusterId }).eq('id', p.id);
+      // 4a) Nhập cụm: centroid + entities ĐÔNG CỨNG theo bài đầu (không trôi).
+      const cluster = mem.find((c) => c.id === match!.clusterId)!;
+      await client.from('posts').update({ cluster_id: cluster.id }).eq('id', p.id);
 
-      const { sources, sourceTypes } = await sourceStats(client, match.clusterId);
+      const { sources, sourceTypes } = await sourceStats(client, cluster.id);
+      cluster.postCount += 1;
+      cluster.lastUpdated = now.getTime();
       await client
         .from('clusters')
         .update({
-          post_count: (cluster.post_count as number) + 1,
+          post_count: cluster.postCount,
           n_sources: sources,
           source_types: sourceTypes,
           last_updated: now.toISOString(),
         })
-        .eq('id', match.clusterId);
+        .eq('id', cluster.id);
       updated++;
     } else {
-      // 3b) Tạo cụm mới
+      // 4b) Tạo cụm mới + đưa ngay vào cache để các bài sau trong lượt này gộp được
       const { data: newCluster, error: insErr } = await client
         .from('clusters')
         .insert({
@@ -115,6 +155,15 @@ export async function runClustering(
         .single();
       if (insErr) throw new Error(`runClustering tạo cụm lỗi: ${insErr.message}`);
       await client.from('posts').update({ cluster_id: newCluster.id }).eq('id', p.id);
+      mem.push({
+        id: newCluster.id,
+        centroid: embedding,
+        entities,
+        postCount: 1,
+        repId: p.id,
+        lastUpdated: now.getTime(),
+      });
+      repTitleCache.set(newCluster.id, p.title);
       created++;
     }
   }

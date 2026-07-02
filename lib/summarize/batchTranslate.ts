@@ -30,8 +30,13 @@ export function makeTitleTranslator(chat: ChatFn): (titles: string[]) => Promise
   return async (titles: string[]): Promise<string[]> => {
     const chunks: string[][] = [];
     for (let i = 0; i < titles.length; i += CHUNK) chunks.push(titles.slice(i, i + CHUNK));
-    // Các lô chạy SONG SONG cho nhanh (1 trang feed chỉ vài lô).
-    const done = await Promise.all(chunks.map((ch) => translateChunk(ch)));
-    return done.flat();
+    // Song song CÓ GIỚI HẠN (5 lô/đợt): nhanh nhưng không dội trăm request một lúc
+    // khi backfill hàng trăm tiêu đề (tránh rate limit).
+    const out: string[] = [];
+    for (let i = 0; i < chunks.length; i += 5) {
+      const wave = await Promise.all(chunks.slice(i, i + 5).map((ch) => translateChunk(ch)));
+      out.push(...wave.flat());
+    }
+    return out;
   };
 }

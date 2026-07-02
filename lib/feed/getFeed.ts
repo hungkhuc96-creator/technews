@@ -32,13 +32,21 @@ export function avatarFor(name: string): { initial: string; color: string; logo:
   return { initial, color: `hsl(${h % 360} 52% 45%)`, logo: logoFor(name) };
 }
 
-export async function getFeed(client: SupabaseClient, limit = 30, offset = 0): Promise<FeedItem[]> {
-  // offset > 0 = "trang kế tiếp" cho cuộn vô hạn: lấy cụm báo NGUỘI HƠN theo độ nóng.
+export async function getFeed(
+  client: SupabaseClient,
+  limit = 30,
+  offset = 0,
+  // 'heat' = trang chủ (độ nóng, trộn X/YouTube). 'recent' = tab "Mới nhất":
+  // THUẦN thời gian trên TOÀN KHO báo chí (trước đây chỉ sort lại ~40 tin đã tải
+  // ở client → tin mới nhưng "nguội" không bao giờ xuất hiện).
+  sort: 'heat' | 'recent' = 'heat',
+): Promise<FeedItem[]> {
+  // offset > 0 = "trang kế tiếp" cho cuộn vô hạn.
   const { data: clusters, error } = await client
     .from('clusters')
     .select('id, n_sources, source_types, heat_score, representative_post_id')
     .eq('status', 'open')
-    .order('heat_score', { ascending: false })
+    .order(sort === 'recent' ? 'last_updated' : 'heat_score', { ascending: false })
     .range(offset, offset + limit - 1);
   if (error) throw new Error(`getFeed đọc clusters lỗi: ${error.message}`);
 
@@ -69,7 +77,7 @@ export async function getFeed(client: SupabaseClient, limit = 30, offset = 0): P
     clusterIds.length
       ? client.from('posts').select('cluster_id, published_at, sources(name)').in('cluster_id', clusterIds)
       : Promise.resolve(empty),
-    offset === 0
+    offset === 0 && sort === 'heat'
       ? client.from('posts')
           .select('id, source_type, title, text, url, published_at, image_url, metrics, author, sources(name)')
           .neq('source_type', 'press').gte('published_at', since)
@@ -185,6 +193,15 @@ export async function getFeed(client: SupabaseClient, limit = 30, offset = 0): P
       bullets: [],
     };
     candidates.push({ item, bucket: p.source_type, rawHeat });
+  }
+
+  // "Mới nhất": thuần thời gian, không ranking (báo chí, bài mới nhất trước).
+  if (sort === 'recent') {
+    return pressItems.sort(
+      (a, b) =>
+        new Date(b.updatedAt ?? b.publishedAt).getTime() -
+        new Date(a.updatedAt ?? a.publishedAt).getTime(),
+    );
   }
 
   // maxConsecutive=3: không quá 3 card cùng loại liên tiếp.

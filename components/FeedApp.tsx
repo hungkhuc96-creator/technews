@@ -29,32 +29,52 @@ export function FeedApp({
   const [menuOpen, setMenuOpen] = useState(false); // menu gộp góc phải (mobile)
   const [now] = useState(() => new Date());
 
-  // Cuộn vô hạn: kho tin đã tải + con trỏ trang kế + trạng thái.
+  // Cuộn vô hạn — 2 "kho" riêng: Trang chủ (độ nóng, nạp sẵn từ server) và
+  // Mới nhất (thuần thời gian trên TOÀN KHO, fetch riêng ?sort=recent).
+  const mode: 'heat' | 'recent' = nav === 'Mới nhất' ? 'recent' : 'heat';
   const [items, setItems] = useState<FeedItem[]>(initialItems);
   const [nextOffset, setNextOffset] = useState(initialOffset);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [reachedEnd, setReachedEnd] = useState(false);
+  const [recentItems, setRecentItems] = useState<FeedItem[]>([]);
+  const [recentOffset, setRecentOffset] = useState(0);
+  const [recentEnd, setRecentEnd] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const loadMore = useCallback(async () => {
-    if (loadingMore || reachedEnd) return;
+    if (loadingMore) return;
+    if (mode === 'heat' ? reachedEnd : recentEnd) return;
     setLoadingMore(true);
     try {
-      const r = await fetch(`/api/feed?offset=${nextOffset}&limit=${BATCH}`);
+      const offset = mode === 'heat' ? nextOffset : recentOffset;
+      const r = await fetch(`/api/feed?offset=${offset}&limit=${BATCH}${mode === 'recent' ? '&sort=recent' : ''}`);
       const d = await r.json();
       const incoming: FeedItem[] = Array.isArray(d.items) ? d.items : [];
-      setItems((prev) => {
+      const append = (prev: FeedItem[]) => {
         const seen = new Set(prev.map((p) => p.clusterId));
         return [...prev, ...incoming.filter((it) => !seen.has(it.clusterId))];
-      });
-      setNextOffset((o) => o + BATCH);
-      if (incoming.length < BATCH) setReachedEnd(true);
+      };
+      if (mode === 'heat') {
+        setItems(append);
+        setNextOffset((o) => o + BATCH);
+        if (incoming.length < BATCH) setReachedEnd(true);
+      } else {
+        setRecentItems(append);
+        setRecentOffset((o) => o + BATCH);
+        if (incoming.length < BATCH) setRecentEnd(true);
+      }
     } catch {
       // lỗi mạng tạm thời — lần cuộn sau tự thử lại
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, reachedEnd, nextOffset]);
+  }, [loadingMore, mode, reachedEnd, recentEnd, nextOffset, recentOffset]);
+
+  // Vào tab "Mới nhất" lần đầu → nạp trang đầu từ server.
+  useEffect(() => {
+    if (mode === 'recent' && recentItems.length === 0 && !recentEnd) loadMore();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   // "Mắt cảm biến" ở đáy: tới gần là tự nạp thêm (rootMargin 600px = nạp sớm).
   useEffect(() => {
@@ -82,20 +102,16 @@ export function FeedApp({
   }, [theme]);
 
   const filtered = useMemo(() => {
-    let list = items;
+    // "Mới nhất" dùng kho server (đã đúng thứ tự thời gian trên toàn kho).
+    let list = mode === 'recent' ? recentItems : items;
     if (source !== 'all') list = list.filter((it) => (it.sourceTypes[0] ?? 'press') === source);
     if (category !== 'Tất cả') list = list.filter((it) => matchCategory(it.titleVi ?? it.title, category));
     if (query.trim()) {
       const q = query.toLowerCase();
       list = list.filter((it) => (it.titleVi ?? it.title).toLowerCase().includes(q) || (it.sourceName ?? '').toLowerCase().includes(q));
     }
-    if (nav === 'Mới nhất') {
-      list = [...list].sort(
-        (a, b) => new Date(b.updatedAt ?? b.publishedAt).getTime() - new Date(a.updatedAt ?? a.publishedAt).getTime(),
-      );
-    }
     return list;
-  }, [items, source, nav, category, query]);
+  }, [items, recentItems, mode, source, category, query]);
 
   const showHero = source === 'all' && category === 'Tất cả' && !query.trim() && nav === 'Trang chủ';
   const hero = showHero ? filtered[0] : undefined;
@@ -199,7 +215,7 @@ export function FeedApp({
           {/* Cuộn vô hạn: mắt cảm biến + trạng thái nạp thêm */}
           <div ref={sentinelRef} className="feed-sentinel" />
           {loadingMore && <p className="feed-more">⚡ Đang tải thêm tin…</p>}
-          {reachedEnd && !loadingMore && cards.length > 0 && (
+          {(mode === 'heat' ? reachedEnd : recentEnd) && !loadingMore && cards.length > 0 && (
             <p className="feed-more feed-end">Bạn đã xem hết tin rồi 🎉</p>
           )}
         </main>

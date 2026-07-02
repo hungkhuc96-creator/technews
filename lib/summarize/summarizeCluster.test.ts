@@ -7,13 +7,13 @@ const articles: ArticleInput[] = [
 ];
 
 describe('buildPrompt', () => {
-  it('chứa tiêu đề bài, yêu cầu tiếng Việt + JSON gồm title/summary/bullets', () => {
+  it('chứa tiêu đề bài, yêu cầu tiếng Việt + JSON gồm title/summary (KHÔNG bullets — tiết kiệm token)', () => {
     const p = buildPrompt(articles);
     expect(p).toContain('OpenAI launches GPT-5.2');
     expect(p).toContain('TIẾNG VIỆT');
     expect(p).toContain('title');
     expect(p).toContain('summary');
-    expect(p).toContain('bullets');
+    expect(p).not.toContain('bullets'); // UI không hiển thị bullets nữa
   });
 });
 

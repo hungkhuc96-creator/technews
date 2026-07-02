@@ -104,15 +104,61 @@ describe('runClustering — chốt chặn AI (sameEvent)', () => {
     await client.from('sources').delete().like('name', 'G-%');
   });
 
-  it('AI nói "không cùng sự kiện" → KHÔNG gộp dù embedding giống hệt', async () => {
-    const fakeEmbedSame = async () => [1, 0, 0]; // mọi tin → cùng vector
-    const sameEvent = async () => false;          // AI luôn từ chối gộp
-    await runClustering(client, { embed: fakeEmbedSame, sameEvent }, {
+  it('vùng xám (cosine ~0.9) + AI nói "khác sự kiện" → KHÔNG gộp', async () => {
+    // 2 vector cosine = 0.9 — nằm trong vùng xám 0.82–0.93 nên AI được hỏi.
+    const fakeEmbedGray = async (text: string) =>
+      text.includes('ships') ? [1, 0, 0] : [0.9, Math.sqrt(1 - 0.81), 0];
+    let asked = 0;
+    const sameEvent = async () => { asked++; return false; }; // AI luôn từ chối gộp
+    await runClustering(client, { embed: fakeEmbedGray, sameEvent }, {
       urlPrefix: 'https://gate.example/',
     });
     const { data: posts } = await client
       .from('posts').select('external_id, cluster_id').like('url', 'https://gate.example/%');
     const byId = Object.fromEntries(posts!.map((p) => [p.external_id, p.cluster_id]));
-    expect(byId.x1).not.toBe(byId.x2); // bị tách thành 2 cụm riêng
+    expect(asked).toBeGreaterThanOrEqual(1); // AI có được hỏi
+    expect(byId.x1).not.toBe(byId.x2);       // và quyết định tách 2 cụm riêng
+  }, 60000);
+});
+
+describe('runClustering — auto-merge trên vùng chắc chắn', () => {
+  beforeAll(async () => {
+    const { data: old } = await client
+      .from('posts').select('cluster_id').like('url', 'https://sure.example/%');
+    const oldIds = [...new Set((old ?? []).map((p) => p.cluster_id).filter(Boolean))];
+    await client.from('posts').delete().like('url', 'https://sure.example/%');
+    if (oldIds.length) await client.from('clusters').delete().in('id', oldIds);
+    await client.from('sources').delete().like('name', 'GS-%');
+    await upsertPosts(client, [
+      { sourceType: 'press', sourceName: 'GS-A', externalId: 's1', title: 'OpenAI ships GPT-6',
+        text: 'gpt', url: 'https://sure.example/s1', author: null,
+        publishedAt: '2026-06-24T00:00:00.000Z', lang: null, metrics: {} },
+      { sourceType: 'press', sourceName: 'GS-B', externalId: 's2', title: 'OpenAI releases GPT-6 today',
+        text: 'gpt', url: 'https://sure.example/s2', author: null,
+        publishedAt: '2026-06-24T01:00:00.000Z', lang: null, metrics: {} },
+    ]);
+  });
+
+  afterAll(async () => {
+    const { data } = await client
+      .from('posts').select('cluster_id').like('url', 'https://sure.example/%');
+    const ids = [...new Set((data ?? []).map((p) => p.cluster_id).filter(Boolean))];
+    await client.from('posts').delete().like('url', 'https://sure.example/%');
+    if (ids.length) await client.from('clusters').delete().in('id', ids);
+    await client.from('sources').delete().like('name', 'GS-%');
+  });
+
+  it('cosine ≥ 0.93 → gộp thẳng KHÔNG hỏi AI (tiết kiệm lượt gọi)', async () => {
+    const fakeEmbedSame = async () => [1, 0, 0]; // giống hệt (cosine 1.0)
+    let asked = 0;
+    const sameEvent = async () => { asked++; return false; }; // dù AI nói không...
+    await runClustering(client, { embed: fakeEmbedSame, sameEvent }, {
+      urlPrefix: 'https://sure.example/',
+    });
+    const { data: posts } = await client
+      .from('posts').select('external_id, cluster_id').like('url', 'https://sure.example/%');
+    const byId = Object.fromEntries(posts!.map((p) => [p.external_id, p.cluster_id]));
+    expect(asked).toBe(0);          // ...AI không hề được hỏi
+    expect(byId.s1).toBe(byId.s2);  // vẫn gộp (vùng chắc chắn)
   }, 60000);
 });
