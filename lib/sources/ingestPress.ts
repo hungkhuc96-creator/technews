@@ -1,6 +1,6 @@
 import { parsePressFeed, type PressSource } from './press';
 import { fetchFeed, type FetchImpl } from './fetchFeed';
-import { isDeal } from './isDeal';
+import { isNoise } from './isDeal';
 import type { NormalizedPost } from '../types';
 
 export interface IngestDeps {
@@ -19,8 +19,8 @@ export async function ingestPress(
   for (const source of sources) {
     try {
       const xml = await fetchFeed(source.feedUrl, deps.fetchImpl);
-      // Lọc bỏ tin deals/khuyến mãi ngay tại nguồn — không cho vào DB.
-      const posts = (await parsePressFeed(xml, source)).filter((p) => !isDeal(p.title));
+      // Lọc RÁC ngay tại nguồn (deal/khuyến mãi + đố vui Wordle...) — không cho vào DB.
+      const posts = (await parsePressFeed(xml, source)).filter((p) => !isNoise(p.title));
       fetched += posts.length;
       inserted += await deps.upsert(posts);
     } catch (err) {

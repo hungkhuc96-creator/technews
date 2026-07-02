@@ -25,7 +25,7 @@ export interface FeedItem {
 }
 
 // Avatar nguồn: chữ cái đầu + màu suy ra từ tên (ổn định).
-function avatarFor(name: string): { initial: string; color: string; logo: string | null } {
+export function avatarFor(name: string): { initial: string; color: string; logo: string | null } {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
   const initial = (name.match(/[a-z0-9]/i)?.[0] ?? '•').toUpperCase();

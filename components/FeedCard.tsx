@@ -21,6 +21,23 @@ function See({ type }: { type: string }) {
   return <span className="see">{metaFor(type).cta} →</span>;
 }
 
+// Tiêu đề là LINK THẬT tới /tin/[id] (Google crawl được, Cmd/Ctrl+click mở tab mới).
+// Click thường vẫn để thẻ mở panel đọc nhanh như cũ.
+function TitleLink({ id, children }: { id: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={`/tin/${id}`}
+      className="title-link"
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey) { e.stopPropagation(); return; } // mở tab mới
+        e.preventDefault(); // click thường → card mở panel
+      }}
+    >
+      {children}
+    </a>
+  );
+}
+
 // Tên tài khoản X gọn (bỏ đuôi .com nếu trùng trang báo)
 function xName(item: FeedItem): string {
   const n = item.authorName ?? (item.sourceName ?? '').replace('@', '');
@@ -105,7 +122,7 @@ function YouTubeCard({ item, ts }: { item: FeedItem; ts: string }) {
         <span>{item.sourceName ?? 'YouTube'}</span>
         <span>· {views}{ts}</span>
       </div>
-      <h3 className="card-title">{item.titleVi ?? item.title}</h3>
+      <h3 className="card-title"><TitleLink id={item.clusterId}>{item.titleVi ?? item.title}</TitleLink></h3>
       {item.summary && <p className="card-summary">{item.summary}</p>}
       <div className="card-foot"><See type="youtube" /></div>
     </>
@@ -128,7 +145,7 @@ function PressCard({ item, ts }: { item: FeedItem; ts: string }) {
         <span>· {ts}</span>
         {hot && <span className="meta-hot">🔥 Nóng</span>}
       </div>
-      <h3 className="card-title">{item.titleVi ?? item.title}</h3>
+      <h3 className="card-title"><TitleLink id={item.clusterId}>{item.titleVi ?? item.title}</TitleLink></h3>
       {item.summary ? (
         <p className="card-summary">{item.summary}</p>
       ) : item.bullets.length > 0 ? (

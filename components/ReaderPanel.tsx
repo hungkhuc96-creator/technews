@@ -85,6 +85,13 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
           <button className="reader-back" onClick={goBack}>← Quay lại</button>
           <span className="reader-type">{TYPE_LABEL[type] ?? TYPE_LABEL.press}</span>
           <span className="reader-live"><span className="live-dot" /> CẬP NHẬT</span>
+          {/* Trang riêng của tin (để copy link chia sẻ Facebook/Zalo) */}
+          <a
+            className="reader-share"
+            href={`/tin/${item.clusterId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >🔗 Chia sẻ</a>
         </div>
 
         <div className="reader-scroll">

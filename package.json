@@ -13,6 +13,7 @@
     "dev": "next dev",
     "process:press": "node --env-file=.env.local --import tsx scripts/cluster-score.ts",
     "recluster": "node --env-file=.env.local --import tsx scripts/recluster.ts",
+    "clean:noise": "node --env-file=.env.local --import tsx scripts/clean-noise.ts",
     "titles:press": "node --env-file=.env.local --import tsx scripts/translate-titles.ts",
     "summarize": "node --env-file=.env.local --import tsx scripts/summarize.ts",
     "ingest:youtube": "node --env-file=.env.local --import tsx scripts/ingest-youtube.ts",
@@ -26,6 +27,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.106.0",
     "@supabase/supabase-js": "^2.108.2",
+    "@vercel/analytics": "^2.0.1",
     "@xenova/transformers": "^2.17.2",
     "next": "^16.2.9",
     "openai": "^6.45.0",

@@ -20,7 +20,19 @@ export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; on
         <span>{relativeTime(ts, now)}</span>
         <span className="hero-hot">🔥 Nóng nhất</span>
       </div>
-      <h2 className="hero-title">{title}</h2>
+      <h2 className="hero-title">
+        {/* Link thật để Google crawl + Cmd/Ctrl+click mở tab; click thường mở panel */}
+        <a
+          href={`/tin/${item.clusterId}`}
+          className="title-link"
+          onClick={(e) => {
+            if (e.metaKey || e.ctrlKey) { e.stopPropagation(); return; }
+            e.preventDefault();
+          }}
+        >
+          {title}
+        </a>
+      </h2>
       {item.summary ? (
         <p className="hero-summary">{item.summary}</p>
       ) : item.bullets.length > 0 ? (
