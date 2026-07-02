@@ -25,7 +25,13 @@ export function createVideoChat(fetchImpl: typeof fetch = fetch): VideoChatFn {
               ],
             },
           ],
-          generationConfig: { temperature: 0.2, maxOutputTokens: 1024 },
+          // thinkingBudget 0: TẮT chế độ "suy nghĩ" của Gemini 2.5 — với video dài,
+          // phần suy nghĩ ăn gần hết maxOutputTokens làm tóm tắt bị cắt cụt còn 1 dòng.
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 2048,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
       },
     );

@@ -15,6 +15,14 @@ export function buildVideoPrompt(): string {
   ].join('\n');
 }
 
+// Gemini thỉnh thoảng thêm lời dẫn ("Dưới đây là tóm tắt...") dù đã dặn không —
+// chỉ giữ các dòng gạch đầu dòng. Nếu format lạ (không có gạch) thì giữ nguyên.
+export function cleanBullets(raw: string): string {
+  const lines = raw.split(/\n+/).map((l) => l.trim()).filter(Boolean);
+  const bullets = lines.filter((l) => /^[-*•]/.test(l));
+  return (bullets.length >= 2 ? bullets : lines).join('\n');
+}
+
 export async function videoSummaryById(
   client: SupabaseClient,
   videoChat: VideoChatFn,
@@ -28,7 +36,7 @@ export async function videoSummaryById(
   if (!post || post.source_type !== 'youtube') return null;
   if (post.video_summary_vi) return post.video_summary_vi; // cache → trả ngay
 
-  const summary = (await videoChat(post.url, buildVideoPrompt())).trim();
+  const summary = cleanBullets((await videoChat(post.url, buildVideoPrompt())).trim());
   if (!summary) return null;
 
   await client.from('posts').update({ video_summary_vi: summary }).eq('id', postId);

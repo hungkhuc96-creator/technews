@@ -1,7 +1,16 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createServiceClient } from '../db/client';
 import { upsertPosts } from '../db/posts';
-import { buildVideoPrompt, videoSummaryById } from './videoSummary';
+import { buildVideoPrompt, cleanBullets, videoSummaryById } from './videoSummary';
+
+describe('cleanBullets', () => {
+  it('bỏ lời dẫn, chỉ giữ gạch đầu dòng', () => {
+    expect(cleanBullets('Dưới đây là tóm tắt video:\n- Ý một\n- Ý hai')).toBe('- Ý một\n- Ý hai');
+  });
+  it('không có gạch đầu dòng thì giữ nguyên (format lạ)', () => {
+    expect(cleanBullets('Một đoạn văn xuôi.')).toBe('Một đoạn văn xuôi.');
+  });
+});
 
 describe('buildVideoPrompt', () => {
   it('yêu cầu tiếng Việt, gạch đầu dòng, bỏ quảng cáo, không suy diễn', () => {
