@@ -17,11 +17,12 @@ function Row({ item, now, onOpen }: { item: FeedItem; now?: Date; onOpen?: (i: F
 }
 
 export function Trending({
-  items, now, onOpen,
+  items, now, onOpen, showRecent = true,
 }: {
   items: FeedItem[];
   now?: Date;
   onOpen?: (item: FeedItem) => void;
+  showRecent?: boolean; // mobile tắt "Tin hôm nay" cho gọn
 }) {
   // Tin nóng = nóng nhất theo heat; Tin hôm nay = mới nhất theo thời gian.
   const hottest = [...items].sort((a, b) => b.heat - a.heat).slice(0, 5);
@@ -44,17 +45,19 @@ export function Trending({
         ))}
       </section>
 
-      <section className="panel">
-        <div className="panel-title">🗞️ Tin hôm nay</div>
-        {/* Tự cuộn: nhân đôi danh sách để lặp liền mạch */}
-        <div className="ticker-view">
-          <div className="ticker-track">
-            {[...recent, ...recent].map((item, i) => (
-              <Row key={`${item.clusterId}-${i}`} item={item} now={now} onOpen={onOpen} />
-            ))}
+      {showRecent && (
+        <section className="panel">
+          <div className="panel-title">🗞️ Tin hôm nay</div>
+          {/* Tự cuộn: nhân đôi danh sách để lặp liền mạch */}
+          <div className="ticker-view">
+            <div className="ticker-track">
+              {[...recent, ...recent].map((item, i) => (
+                <Row key={`${item.clusterId}-${i}`} item={item} now={now} onOpen={onOpen} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </aside>
   );
 }

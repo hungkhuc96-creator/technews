@@ -26,6 +26,7 @@ export function FeedApp({
   const [category, setCategory] = useState('Tất cả');
   const [query, setQuery] = useState('');
   const [reader, setReader] = useState<FeedItem | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false); // menu gộp góc phải (mobile)
   const [now] = useState(() => new Date());
 
   // Cuộn vô hạn: kho tin đã tải + con trỏ trang kế + trạng thái.
@@ -113,13 +114,46 @@ export function FeedApp({
           />
         </label>
         <div className="header-actions">
+          {/* Desktop: nút đổi theme rời (nav nằm ở cột trái) */}
           <span
-            className="icon-btn"
+            className="icon-btn theme-desktop"
             title="Giao diện sáng/tối"
             onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
           >
             {theme === 'dark' ? '☀' : '☾'}
           </span>
+
+          {/* Mobile: 1 menu gộp (cột trái bị ẩn) */}
+          <div className="menu-wrap">
+            <span className="icon-btn menu-btn" title="Menu" onClick={() => setMenuOpen((v) => !v)}>☰</span>
+            {menuOpen && (
+              <>
+                <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
+                <div className="menu-drop">
+                  <div
+                    className={`menu-item${nav === 'Trang chủ' ? ' active' : ''}`}
+                    onClick={() => { setNav('Trang chủ'); setMenuOpen(false); }}
+                  >🏠 Trang chủ</div>
+                  <div
+                    className={`menu-item${nav === 'Mới nhất' ? ' active' : ''}`}
+                    onClick={() => { setNav('Mới nhất'); setMenuOpen(false); }}
+                  >🕐 Mới nhất</div>
+                  <a
+                    className="menu-item"
+                    href="https://dealhungkhuc.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMenuOpen(false)}
+                  >🎁 Deal người nhà</a>
+                  <div className="menu-sep" />
+                  <div
+                    className="menu-item"
+                    onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+                  >{theme === 'dark' ? '☀ Chế độ sáng' : '☾ Chế độ tối'}</div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -153,9 +187,9 @@ export function FeedApp({
 
           {hero && <HeroCard item={hero} now={now} onOpen={() => setReader(hero)} />}
 
-          {/* Trên mobile (cột phải bị ẩn): "Tin hôm nay" + "Đáng tham khảo" nằm ngay dưới tin nóng nhất */}
+          {/* Trên mobile (cột phải bị ẩn): chỉ "Tin nóng" (bỏ "Tin hôm nay" cho gọn) */}
           <div className="rail-mobile">
-            <Trending items={items} now={now} onOpen={(it) => setReader(it)} />
+            <Trending items={items} now={now} onOpen={(it) => setReader(it)} showRecent={false} />
           </div>
 
           {cards.map((item) => (

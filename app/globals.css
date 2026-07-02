@@ -57,6 +57,24 @@ a { color: inherit; text-decoration: none; }
   color: var(--text-dim); font-size: 16px;
 }
 
+/* Menu gộp (mobile) — mặc định ẩn, chỉ hiện khi cột trái bị ẩn (<1100px) */
+.menu-wrap { position: relative; display: none; }
+.menu-backdrop { position: fixed; inset: 0; z-index: 60; }
+.menu-drop {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 61;
+  min-width: 190px; padding: 6px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--border);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.menu-item {
+  display: block; padding: 11px 14px; border-radius: 10px; cursor: pointer;
+  font-size: 15px; font-weight: 600; color: var(--text); text-decoration: none;
+}
+.menu-item:hover { background: var(--surface-2); }
+.menu-item.active { background: var(--accent); color: var(--accent-ink); }
+.menu-sep { height: 1px; margin: 5px 8px; background: var(--border); }
+
 /* ===== Shell ===== */
 /* Full-bleed kiểu mạng xã hội: container rất rộng, feed 720 ở giữa,
    cột trái/phải đẩy ra sát mép. */
@@ -480,6 +498,9 @@ a { color: inherit; text-decoration: none; }
   .sidebar { display: none; }
   .layout { padding: 18px 18px 80px; gap: 0; }
   .app-header { grid-template-columns: auto 1fr auto; padding: 0 18px; }
+  /* Cột trái ẩn → gộp nav + đổi theme vào 1 menu góc phải */
+  .theme-desktop { display: none; }
+  .menu-wrap { display: block; }
 }
 
 /* Điện thoại dọc */
