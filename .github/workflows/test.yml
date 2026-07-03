@@ -20,13 +20,15 @@ jobs:
         with:
           node-version: 22
 
-      # Test tích hợp cần Supabase (dùng dữ liệu test có tiền tố riêng, tự dọn).
+      # Test tích hợp chạy trên DB TEST riêng (project "hot tech news TEST"), KHÔNG
+      # phải production — vitest.setup.ts từ chối chạy nếu thiếu 2 biến _TEST này.
+      # CI cố tình KHÔNG có secret production → không đường nào chạm tới dữ liệu thật.
       # KHÔNG cần ANTHROPIC_API_KEY — mọi test dùng chat giả.
       - name: Tạo .env.local
         run: |
           cat > .env.local <<EOF
-          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_URL_TEST=${{ secrets.SUPABASE_URL_TEST }}
+          SUPABASE_SERVICE_KEY_TEST=${{ secrets.SUPABASE_SERVICE_KEY_TEST }}
           EOF
 
       - run: npm install --no-audit --no-fund

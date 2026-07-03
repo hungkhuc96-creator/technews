@@ -27,6 +27,12 @@ describe('upsertPosts', () => {
     await client.from('sources').delete().eq('name', 'Test Source');
   });
 
+  // Dọn sau khi chạy — thiếu bước này a1/a2/a3 nằm lại trong DB (như các khối test khác).
+  afterAll(async () => {
+    await client.from('posts').delete().like('url', 'https://example.com/%');
+    await client.from('sources').delete().eq('name', 'Test Source');
+  });
+
   it('ghi post mới và trả về số dòng ghi', async () => {
     const n = await upsertPosts(client, [makePost('a1'), makePost('a2')]);
     expect(n).toBe(2);
