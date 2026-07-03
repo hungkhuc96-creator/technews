@@ -26,6 +26,16 @@ describe('normalizeTweets', () => {
     expect(out.map((p) => p.externalId)).toEqual(['c', 'd']);
   });
 
+  it('bỏ "tweet giả" của actor (id -1 / không có author)', () => {
+    const base = { createdAt: '2026-06-26T10:00:00.000Z', isRetweet: false, isReply: false };
+    const out = normalizeTweets([
+      { ...base, id: '-1', text: 'From KaitoEasyAPI, a reminder: our API pricing...' }, // id -1, không author → bỏ
+      { ...base, id: '7', text: 'Tweet thật đủ dài về con chip mới sắp ra mắt trong tuần' }, // không author → bỏ
+      { ...base, id: '8', text: 'Tin thật về con chip M5 hoàn toàn mới, hiệu năng tăng gấp đôi', author: { userName: 'sama', name: 'Sam Altman' } }, // giữ
+    ]);
+    expect(out.map((p) => p.externalId)).toEqual(['8']);
+  });
+
   it('cắt link t.co khỏi tiêu đề/nội dung tweet', () => {
     const out = normalizeTweets([
       {

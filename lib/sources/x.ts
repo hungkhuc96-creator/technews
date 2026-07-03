@@ -23,6 +23,13 @@ function cleanText(s: string): string {
   return s.replace(/https?:\/\/t\.co\/\S+/g, '').replace(/\s+/g, ' ').trim();
 }
 
+// Tweet GIẢ do actor kaitoeasyapi chèn: khi kết quả ít, họ trả về 1 "mẫu giả"
+// (id '-1', url .../unknown/status/-1, KHÔNG có author) để thu phí tối thiểu.
+// Tweet thật luôn có author.userName → dùng đó để loại, kẻo lọt vào feed.
+function isDummy(t: Tweet): boolean {
+  return t.id === '-1' || !t.author?.userName;
+}
+
 // Tweet "rác": quá ngắn VÀ không kèm link. Tweet ngắn có link thường trỏ tới
 // bài báo nên giữ lại; còn các câu phản ứng kiểu "Amazing"/"Madness" thì bỏ.
 function isJunk(t: Tweet): boolean {
@@ -37,7 +44,7 @@ function isJunk(t: Tweet): boolean {
 // X xếp theo ĐỘ MỚI (getFeed dùng recencyHeat cho source_type 'x') — metrics chỉ để hiển thị.
 export function normalizeTweets(items: unknown[]): NormalizedPost[] {
   return (items as Tweet[])
-    .filter((t) => t && t.id && !t.isRetweet && !t.isReply && !isJunk(t))
+    .filter((t) => t && t.id && !isDummy(t) && !t.isRetweet && !t.isReply && !isJunk(t))
     .map((t) => {
       const handle = t.author?.userName ?? 'unknown';
       const cleanedText = cleanText(t.text ?? '');
