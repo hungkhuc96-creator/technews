@@ -3,24 +3,13 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FeedItem } from '../lib/feed/getFeed';
 import { relativeTime, sourceLabel, compactNumber } from '../lib/feed/format';
+import { hashColor } from '../lib/feed/color';
+import { youtubeId } from '../lib/feed/youtube';
 import { TweetEmbed } from './TweetEmbed';
 
 const TYPE_LABEL: Record<string, string> = {
   press: '📰 Bài báo', youtube: '▶ Video', x: '𝕏 Bài đăng', reddit: '👽 Reddit', tiktok: '♪ TikTok',
 };
-
-// Màu suy ra từ tên (avatar dự phòng khi nguồn không có logo).
-function hashColor(s: string): string {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return `hsl(${h % 360} 52% 45%)`;
-}
-
-// Lấy video ID từ link YouTube (watch?v= / shorts/ / youtu.be / embed)
-function youtubeId(url: string): string | null {
-  const m = url.match(/(?:v=|\/shorts\/|youtu\.be\/|\/embed\/)([\w-]{6,})/);
-  return m ? m[1] : null;
-}
 
 // Panel chi tiết trượt từ phải khi bấm một thẻ — bám sát thiết kế gốc.
 export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date; onClose: () => void }) {

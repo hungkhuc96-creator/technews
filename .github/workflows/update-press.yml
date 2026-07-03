@@ -35,9 +35,9 @@ jobs:
       - run: npm run ingest:press      # lấy RSS báo chí
       - run: npm run process:press     # gom cụm + chấm độ nóng
       - run: npm run titles:press      # dịch tiêu đề (eager) → feed luôn tiếng Việt
-      - run: npm run summarize         # tóm tắt SẴN top-100 (song song) → bấm là hiện ngay
+      - run: npm run summarize         # tóm tắt SẴN top-20 (song song) → bấm là hiện ngay
         env:
-          SUMMARIZE_LIMIT: 100
+          SUMMARIZE_LIMIT: 20
 
       # Chỉ chạy khi có bước hỏng — mở 1 GitHub Issue (GitHub sẽ email cho bạn).
       # Gộp về 1 issue đang mở để khỏi spam mỗi 15'; sửa xong đóng issue là hết.

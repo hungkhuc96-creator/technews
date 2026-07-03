@@ -3,6 +3,7 @@ import { rankCandidates, type RankCandidate } from './rank';
 import { engagementHeat, recencyHeat } from '../score/heat';
 import type { PostMetrics } from '../types';
 import { logoFor, sourceAvatar } from './sourceLogos';
+import { hashColor } from './color';
 
 export interface FeedItem {
   clusterId: string;
@@ -30,10 +31,8 @@ export interface FeedItem {
 
 // Avatar nguồn: chữ cái đầu + màu suy ra từ tên (ổn định).
 export function avatarFor(name: string): { initial: string; color: string; logo: string | null } {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
   const initial = (name.match(/[a-z0-9]/i)?.[0] ?? '•').toUpperCase();
-  return { initial, color: `hsl(${h % 360} 52% 45%)`, logo: logoFor(name) };
+  return { initial, color: hashColor(name), logo: logoFor(name) };
 }
 
 export async function getFeed(

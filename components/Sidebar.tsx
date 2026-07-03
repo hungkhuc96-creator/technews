@@ -86,7 +86,9 @@ export function Sidebar({
           <span>◎</span>
           <span className="src-label">Tất cả nguồn</span>
         </div>
-        {SOURCES.map((s) => (
+        {/* Chỉ hiện nguồn ĐANG có tin (ẩn Reddit/TikTok khi chưa có dữ liệu → tránh
+            bấm vào ra feed rỗng). */}
+        {SOURCES.filter((s) => (counts[s.key] ?? 0) > 0).map((s) => (
           <div
             key={s.key}
             className={`src-item${activeSource === s.key ? ' active' : ''}`}
@@ -94,7 +96,7 @@ export function Sidebar({
           >
             <span>{s.icon}</span>
             <span className="src-label">{s.label}</span>
-            {counts[s.key] > 0 && <span className="src-badge">{counts[s.key]}</span>}
+            <span className="src-badge">{counts[s.key]}</span>
           </div>
         ))}
       </nav>

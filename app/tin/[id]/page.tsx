@@ -6,6 +6,7 @@ import { createServiceClient } from '@/lib/db/client';
 import { getFeedItem } from '@/lib/feed/getItem';
 import { sourceLabel } from '@/lib/feed/format';
 import { DetailSummary, VideoSummary } from '@/components/ReaderLazy';
+import { youtubeId } from '@/lib/feed/youtube';
 
 // Trang chi tiết 1 tin — để CHIA SẺ (og:tags cho Facebook/Zalo) + SEO (Google
 // index từng tin). Cache CDN 5 phút; nội dung tin ít đổi nên đủ tươi.
@@ -20,11 +21,6 @@ function absoluteTime(iso: string): string {
     timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit',
     day: 'numeric', month: 'numeric', year: 'numeric',
   });
-}
-
-function youtubeId(url: string): string | null {
-  const m = url.match(/(?:v=|\/shorts\/|youtu\.be\/|\/embed\/)([\w-]{6,})/);
-  return m ? m[1] : null;
 }
 
 export async function generateMetadata(
