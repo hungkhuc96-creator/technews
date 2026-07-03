@@ -164,6 +164,15 @@ a { color: inherit; text-decoration: none; }
 }
 .feed-end { color: var(--text-dim); }
 
+.feed-error {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  flex-wrap: wrap; padding: 16px 0 28px; font-size: 14px; color: var(--text-dim);
+}
+.feed-error button {
+  padding: 7px 16px; border-radius: 999px; border: 0; cursor: pointer;
+  background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 13px;
+}
+
 .new-pill-wrap { display: flex; justify-content: center; margin: 4px 0; }
 .new-pill {
   display: inline-flex; align-items: center; gap: 7px; padding: 7px 16px;

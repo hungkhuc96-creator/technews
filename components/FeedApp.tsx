@@ -39,6 +39,7 @@ export function FeedApp({
   const [recentOffset, setRecentOffset] = useState(0);
   const [recentEnd, setRecentEnd] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const loadMore = useCallback(async () => {
@@ -48,6 +49,7 @@ export function FeedApp({
     try {
       const offset = mode === 'heat' ? nextOffset : recentOffset;
       const r = await fetch(`/api/feed?offset=${offset}&limit=${BATCH}${mode === 'recent' ? '&sort=recent' : ''}`);
+      if (!r.ok) throw new Error(`feed ${r.status}`);
       const d = await r.json();
       const incoming: FeedItem[] = Array.isArray(d.items) ? d.items : [];
       const append = (prev: FeedItem[]) => {
@@ -63,8 +65,9 @@ export function FeedApp({
         setRecentOffset((o) => o + BATCH);
         if (incoming.length < BATCH) setRecentEnd(true);
       }
+      setLoadError(false);
     } catch {
-      // lỗi mạng tạm thời — lần cuộn sau tự thử lại
+      setLoadError(true); // hiện toast + dừng tự-nạp cho tới khi bấm "Thử lại"
     } finally {
       setLoadingMore(false);
     }
@@ -82,13 +85,13 @@ export function FeedApp({
     if (!el) return;
     const ob = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) loadMore();
+        if (entries[0].isIntersecting && !loadError) loadMore();
       },
       { rootMargin: '600px' },
     );
     ob.observe(el);
     return () => ob.disconnect();
-  }, [loadMore]);
+  }, [loadMore, loadError]);
 
   // Đọc theme đã lưu khi mở trang.
   useEffect(() => {
@@ -215,6 +218,14 @@ export function FeedApp({
           {/* Cuộn vô hạn: mắt cảm biến + trạng thái nạp thêm */}
           <div ref={sentinelRef} className="feed-sentinel" />
           {loadingMore && <p className="feed-more">⚡ Đang tải thêm tin…</p>}
+          {loadError && !loadingMore && (
+            <div className="feed-error" role="alert">
+              <span>Mạng trục trặc, chưa tải được thêm tin.</span>
+              <button type="button" onClick={() => { setLoadError(false); loadMore(); }}>
+                Thử lại
+              </button>
+            </div>
+          )}
           {(mode === 'heat' ? reachedEnd : recentEnd) && !loadingMore && cards.length > 0 && (
             <p className="feed-more feed-end">Bạn đã xem hết tin rồi 🎉</p>
           )}
