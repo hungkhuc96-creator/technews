@@ -27,10 +27,14 @@ export function createVideoChat(fetchImpl: typeof fetch = fetch): VideoChatFn {
           ],
           // thinkingBudget 0: TẮT chế độ "suy nghĩ" của Gemini 2.5 — với video dài,
           // phần suy nghĩ ăn gần hết maxOutputTokens làm tóm tắt bị cắt cụt còn 1 dòng.
+          // mediaResolution LOW: xem video ở độ phân giải thấp → ~4× ít token hơn
+          // (video tech nói chuyện không cần nét cao để tóm ý) → video 20-40' nằm gọn
+          // trong hạn mức Gemini free, đỡ bị cắt cụt.
           generationConfig: {
             temperature: 0.2,
             maxOutputTokens: 2048,
             thinkingConfig: { thinkingBudget: 0 },
+            mediaResolution: 'MEDIA_RESOLUTION_LOW',
           },
         }),
       },

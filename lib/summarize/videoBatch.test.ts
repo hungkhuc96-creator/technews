@@ -30,6 +30,9 @@ describe('summarizeRecentVideos', () => {
       { sourceType: 'youtube', sourceName: 'VBatch-Src', externalId: 'vbatch_long',
         title: 'Podcast dài', text: '', url: 'https://www.youtube.com/watch?v=vbatch_long',
         author: null, publishedAt: recent, lang: null, metrics: {} },
+      { sourceType: 'youtube', sourceName: 'VBatch-Src', externalId: 'vbatch_unknown',
+        title: 'Không đo được độ dài', text: '', url: 'https://www.youtube.com/watch?v=vbatch_unknown',
+        author: null, publishedAt: recent, lang: null, metrics: {} },
     ]);
   });
 
@@ -38,25 +41,27 @@ describe('summarizeRecentVideos', () => {
     await client.from('sources').delete().eq('name', 'VBatch-Src');
   });
 
-  it('tóm tắt video ngắn, BỎ QUA podcast dài (để lazy)', async () => {
+  it('tóm tắt video ngắn + video KHÔNG ĐO ĐƯỢC độ dài, chỉ BỎ podcast biết chắc dài', async () => {
     let geminiCalls = 0;
     const r = await summarizeRecentVideos(client, {
       videoChat: async () => { geminiCalls++; return '- Ý chính'; },
-      getDurationSec: async (url) => (url.includes('long') ? 4000 : 300), // 66' vs 5'
+      // long → 66' (bỏ); unknown → null (cứ thử); còn lại → 5' (làm)
+      getDurationSec: async (url) => (url.includes('long') ? 4000 : url.includes('unknown') ? null : 300),
       maxDurationSec: 1200,
       // BẮT BUỘC: chỉ đụng post test — thiếu filter này test sẽ cache chuỗi giả
       // vào video THẬT trên production (đã xảy ra, phải dọn tay).
       urlPrefix: 'https://www.youtube.com/watch?v=vbatch_',
     });
-    expect(r.checked).toBe(2);
-    expect(r.summarized).toBe(1);
-    expect(r.skippedLong).toBe(1);
-    expect(geminiCalls).toBe(1); // video dài không tốn lần gọi Gemini nào
+    expect(r.checked).toBe(3);
+    expect(r.summarized).toBe(2);      // ngắn + không-đo-được
+    expect(r.skippedLong).toBe(1);     // chỉ podcast biết chắc dài
+    expect(geminiCalls).toBe(2);
 
     const { data } = await client
       .from('posts').select('url, video_summary_vi').like('url', '%vbatch_%').order('url');
     const byUrl = new Map(data!.map((d) => [d.url, d.video_summary_vi]));
-    expect(byUrl.get('https://www.youtube.com/watch?v=vbatch_long')).toBeNull();      // dài → chưa tóm tắt
-    expect(byUrl.get('https://www.youtube.com/watch?v=vbatch_short')).toBe('- Ý chính'); // ngắn → có sẵn
+    expect(byUrl.get('https://www.youtube.com/watch?v=vbatch_long')).toBeNull();         // dài → bỏ
+    expect(byUrl.get('https://www.youtube.com/watch?v=vbatch_short')).toBe('- Ý chính');  // ngắn → có
+    expect(byUrl.get('https://www.youtube.com/watch?v=vbatch_unknown')).toBe('- Ý chính'); // không đo được → vẫn có
   }, 60000);
 });
