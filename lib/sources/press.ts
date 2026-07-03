@@ -1,5 +1,6 @@
 import Parser from 'rss-parser';
 import type { NormalizedPost } from '../types';
+import { normalizeUrl } from '../util/url';
 
 export interface PressSource {
   name: string;
@@ -59,7 +60,7 @@ export async function parsePressFeed(
 ): Promise<NormalizedPost[]> {
   const feed = await parser.parseString(xml);
   return (feed.items ?? []).map((item) => {
-    const url = item.link ?? '';
+    const url = normalizeUrl(item.link ?? '');
     // Ưu tiên content:encoded (đoạn DÀI hơn — vài báo cấp gần cả bài), rồi mới
     // đến description/summary. Tất cả đều gỡ HTML + giới hạn độ dài bên dưới.
     const enc = (item as { contentEncoded?: string }).contentEncoded;
