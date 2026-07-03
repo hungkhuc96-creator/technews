@@ -1,9 +1,11 @@
 name: Bản tin sáng (Telegram)
 
-# Gửi bản tin 5 tin nóng nhất vào kênh Telegram mỗi sáng.
+# Gửi bản tin 5 tin nóng nhất vào kênh Telegram, 2 lần/ngày.
+# Nhờ digest_log (chống lặp 7 ngày), bản trưa tự lấy 5 tin MỚI khác bản sáng.
 on:
   schedule:
     - cron: '0 0 * * *'   # 00:00 UTC = 07:00 sáng giờ VN
+    - cron: '0 5 * * *'   # 05:00 UTC = 12:00 trưa giờ VN
   workflow_dispatch: {}
 
 concurrency:
