@@ -126,7 +126,7 @@ a { color: inherit; text-decoration: none; }
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-grotesk), sans-serif; font-size: 11px; font-weight: 700; color: #fff;
 }
-.follow-logo { background: #fff; object-fit: cover; padding: 0; }
+.follow-logo { background: #fff; object-fit: contain; padding: 2px; }
 .follow-channel { border-radius: 999px; object-fit: cover; }
 .follow-yt { font-size: 9px; color: #ff5b5b; margin-right: -4px; }
 .follow-more {
@@ -214,7 +214,7 @@ a { color: inherit; text-decoration: none; }
   font-family: var(--font-grotesk), sans-serif; font-size: 11px; font-weight: 700;
 }
 .hero-sources .savatar:first-child { margin-left: 0; }
-.savatar-logo { background: #fff; object-fit: cover; padding: 0; }
+.savatar-logo { background: #fff; object-fit: contain; padding: 2px; }
 .hero-srctext { font-size: 13px; font-weight: 500; color: rgba(11, 11, 15, 0.58); }
 .hero-btn {
   margin-left: auto; padding: 10px 18px; border-radius: 999px;
@@ -266,7 +266,7 @@ a { color: inherit; text-decoration: none; }
 /* Logo trang báo trong cột phải (Tin nóng / Tin hôm nay) */
 .prow-logo {
   width: 22px; height: 22px; border-radius: 6px; flex: none;
-  background: #fff; object-fit: cover; margin-top: 1px;
+  background: #fff; object-fit: contain; padding: 2px; margin-top: 1px;
 }
 
 /* Avatar nguồn nhỏ trong footer báo chí */
@@ -277,7 +277,7 @@ a { color: inherit; text-decoration: none; }
   font-family: var(--font-grotesk), sans-serif; font-size: 10px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
 }
-.mini-logo { background: #fff; object-fit: cover; padding: 0; }
+.mini-logo { background: #fff; object-fit: contain; padding: 2px; }
 
 /* Thẻ YouTube: nút play đè lên thumbnail */
 .video-thumb { position: relative; margin: -18px -20px 0; border-radius: 14px 14px 0 0; overflow: hidden; }
@@ -426,7 +426,7 @@ a { color: inherit; text-decoration: none; }
   color: #fff; font-size: 13px; font-weight: 700; font-family: var(--font-grotesk), sans-serif;
   display: flex; align-items: center; justify-content: center; flex: none; object-fit: contain;
 }
-.r-logo { background: #fff; padding: 0; object-fit: cover; }
+.r-logo { background: #fff; padding: 3px; object-fit: contain; }
 .reader-metatext { font-size: 14px; color: var(--text-faint); }
 
 .reader-video {
