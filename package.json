@@ -14,6 +14,7 @@
     "process:press": "node --env-file=.env.local --import tsx scripts/cluster-score.ts",
     "recluster": "node --env-file=.env.local --import tsx scripts/recluster.ts",
     "clean:noise": "node --env-file=.env.local --import tsx scripts/clean-noise.ts",
+    "cleanup": "node --env-file=.env.local --import tsx scripts/cleanup.ts",
     "titles:press": "node --env-file=.env.local --import tsx scripts/translate-titles.ts",
     "summarize": "node --env-file=.env.local --import tsx scripts/summarize.ts",
     "ingest:youtube": "node --env-file=.env.local --import tsx scripts/ingest-youtube.ts",
