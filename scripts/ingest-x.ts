@@ -23,7 +23,10 @@ async function main() {
   const result = await ingestX(X_HANDLES, {
     runActor: (input) => runActorGetItems(ACTOR, input, token),
     upsert: (posts) => upsertPosts(client, posts),
-    maxItems: 40,   // giữ thấp để tiết kiệm credit Apify
+    // LƯU Ý: actor kaito tính maxItems THEO TỪNG QUERY (không phải tổng) — với 37
+    // handle chia 3 query, 15/query ≈ 45 kết quả/lượt, ngang mức 40 cũ → giữ nguyên
+    // chi phí trong hạn mức $5 free/tháng của Apify.
+    maxItems: 15,
     translate,      // dịch caption sang tiếng Việt khi nạp
   });
   console.log('Ingest X xong:', result);

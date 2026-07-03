@@ -27,6 +27,24 @@ describe('ingestX', () => {
     expect(inserted[0].sourceType).toBe('x');
   });
 
+  it('nhiều handle → chia thành nhiều query, mỗi query dưới giới hạn 512 ký tự của X', async () => {
+    // 37 handle dài nhất có thể (15 ký tự) — trường hợp xấu nhất
+    const handles = Array.from({ length: 37 }, (_, i) => `handle_dai_${String(i).padStart(4, '0')}`);
+    let seenInput: any = null;
+    await ingestX(handles, {
+      runActor: async (input) => { seenInput = input; return []; },
+      upsert: async (p) => p.length,
+    });
+    expect(seenInput.searchTerms.length).toBe(3); // 15+15+7
+    for (const q of seenInput.searchTerms) {
+      expect(q.length).toBeLessThanOrEqual(512);
+      expect(q).toContain('-filter:retweets');
+    }
+    // không rơi rớt handle nào
+    const joined = seenInput.searchTerms.join(' ');
+    for (const h of handles) expect(joined).toContain(`from:${h}`);
+  });
+
   it('actor lỗi thì trả inserted 0 và ghi nhận lỗi (không ném)', async () => {
     const result = await ingestX(['x'], {
       runActor: async () => { throw new Error('Apify down'); },

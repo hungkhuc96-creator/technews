@@ -9,15 +9,28 @@ export interface XIngestDeps {
   translate?: (text: string) => Promise<string>;
 }
 
+// X giới hạn câu tìm kiếm ~512 ký tự → gộp tối đa 15 handle/query (an toàn kể cả
+// handle dài nhất 15 ký tự). Nhiều query vẫn là 1 lần chạy actor, và maxItems chặn
+// TỔNG kết quả nên chi phí Apify không tăng theo số handle.
+const HANDLES_PER_QUERY = 15;
+
+function buildQueries(handles: string[]): string[] {
+  const queries: string[] = [];
+  for (let i = 0; i < handles.length; i += HANDLES_PER_QUERY) {
+    const chunk = handles.slice(i, i + HANDLES_PER_QUERY);
+    queries.push(`(${chunk.map((h) => `from:${h}`).join(' OR ')}) -filter:retweets -filter:replies`);
+  }
+  return queries;
+}
+
 export async function ingestX(
   handles: string[],
   deps: XIngestDeps,
 ): Promise<{ fetched: number; inserted: number; error?: string }> {
   const maxItems = deps.maxItems ?? handles.length * 3;
-  // 1 query Twitter gộp mọi handle (OR) + bỏ retweet/reply ngay tại nguồn → ÍT kết quả, rẻ.
-  const query = `(${handles.map((h) => `from:${h}`).join(' OR ')}) -filter:retweets -filter:replies`;
+  // Query Twitter gộp handle (OR) + bỏ retweet/reply ngay tại nguồn → ÍT kết quả, rẻ.
   const input: Record<string, unknown> = {
-    searchTerms: [query],
+    searchTerms: buildQueries(handles),
     sort: 'Latest',
     maxItems,
   };
