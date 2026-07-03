@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { createServiceClient } from '@/lib/db/client';
 import { getFeedItem } from '@/lib/feed/getItem';
 import { sourceLabel } from '@/lib/feed/format';
+import { DetailSummary, VideoSummary } from '@/components/ReaderLazy';
 
 // Trang chi tiết 1 tin — để CHIA SẺ (og:tags cho Facebook/Zalo) + SEO (Google
 // index từng tin). Cache CDN 5 phút; nội dung tin ít đổi nên đủ tươi.
@@ -85,11 +86,19 @@ export default async function TinPage({ params }: { params: Promise<{ id: string
         )}
 
         {item.summary && (
-          <div className="reader-ai">
-            <span className="reader-ai-badge">⚡ Tóm tắt bởi AI</span>
+          <div className="reader-ai reader-detail">
+            <span className="reader-ai-badge">📖 Ý chính đáng đọc</span>
             <p className="reader-ai-sum">{item.summary}</p>
           </div>
         )}
+
+        {/* Ý chính video (YouTube): hiện ngay nếu đã tóm tắt sẵn, chưa thì bấm mới tạo */}
+        {type === 'youtube' && (
+          <VideoSummary postId={item.clusterId} initial={item.videoSummary} />
+        )}
+
+        {/* Tóm tắt chi tiết (báo chí): bấm mới tạo, cache ở server */}
+        {type === 'press' && <DetailSummary clusterId={item.clusterId} />}
 
         {type === 'press' && item.text && (
           <div className="reader-orig">
