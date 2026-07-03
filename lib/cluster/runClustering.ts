@@ -10,7 +10,7 @@ export interface ClusterDeps {
   sameEvent?: (a: string, b: string) => Promise<boolean>;
 }
 
-const WINDOW_MS = 48 * 60 * 60 * 1000;
+const WINDOW_MS = 72 * 60 * 60 * 1000;
 // Embedding chỉ LỌC ỨNG VIÊN (recall cao), AI mới là người quyết định gộp.
 const JOIN_THRESHOLD = 0.82;
 // Giống nhau tới mức này thì gộp thẳng, KHỎI hỏi AI (tiết kiệm ~70% lượt gọi).
@@ -111,25 +111,47 @@ export async function runClustering(
 
     let match = bestCluster(embedding, entities, candidates, JOIN_THRESHOLD);
 
-    // 3) CHỐT CHẶN AI — chỉ hỏi ở "vùng xám": đủ giống để nghi, chưa đủ để chắc.
-    if (match && match.score < AUTO_MERGE && deps.sameEvent) {
-      const cand = mem.find((c) => c.id === match!.clusterId)!;
-      const t = await repTitle(cand);
-      if (t && !(await deps.sameEvent(p.title, t))) match = null;
+    // 3) QUYẾT ĐỊNH GỘP:
+    //  - Rất giống (≥0.93) VÀ trùng thực thể → chắc chắn, gộp thẳng (khỏi hỏi AI).
+    //  - Còn lại (vùng xám, hoặc rất giống nhưng khác thực thể) → để AI phân xử.
+    //  - Không có AI → thận trọng: chỉ gộp khi có trùng thực thể (như cũ).
+    if (match) {
+      const sure = match.score >= AUTO_MERGE && match.overlap;
+      if (!sure) {
+        if (deps.sameEvent) {
+          const cand = mem.find((c) => c.id === match!.clusterId)!;
+          const t = await repTitle(cand);
+          if (!t || !(await deps.sameEvent(p.title, t))) match = null;
+        } else if (!match.overlap) {
+          match = null;
+        }
+      }
     }
 
     if (match) {
-      // 4a) Nhập cụm: centroid + entities ĐÔNG CỨNG theo bài đầu (không trôi).
+      // 4a) Nhập cụm: centroid trôi theo TRUNG BÌNH, thực thể GỘP thêm (không đóng
+      //     băng theo bài đầu) → cụm ngày càng đại diện đúng và dễ hút bài liên quan.
       const cluster = mem.find((c) => c.id === match!.clusterId)!;
       await client.from('posts').update({ cluster_id: cluster.id }).eq('id', p.id);
 
+      const n = cluster.postCount;
+      const newCentroid =
+        cluster.centroid.length === embedding.length
+          ? cluster.centroid.map((v, i) => (v * n + embedding[i]) / (n + 1))
+          : cluster.centroid;
+      const newEntities = [...new Set([...cluster.entities, ...entities])].slice(0, 40);
+
       const { sources, sourceTypes } = await sourceStats(client, cluster.id);
-      cluster.postCount += 1;
+      cluster.postCount = n + 1;
+      cluster.centroid = newCentroid;
+      cluster.entities = newEntities;
       cluster.lastUpdated = now.getTime();
       await client
         .from('clusters')
         .update({
           post_count: cluster.postCount,
+          centroid: newCentroid,
+          entities: newEntities,
           n_sources: sources,
           source_types: sourceTypes,
           last_updated: now.toISOString(),

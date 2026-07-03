@@ -70,9 +70,9 @@ describe('runClustering', () => {
       .from('clusters').select('n_sources, post_count, entities').eq('id', byId.g1).single();
     expect(gptCluster!.n_sources).toBe(2);  // 2 nguồn (T-A, T-B)
     expect(gptCluster!.post_count).toBe(2);
-    // Từ khóa cụm ĐÔNG CỨNG theo bài đầu — không nuốt thêm "nvidia" từ bài thứ 2.
+    // Từ khóa cụm GỘP thêm từ bài mới nhập (không còn đóng băng theo bài đầu).
     expect(gptCluster!.entities).toContain('gpt-5.2');
-    expect(gptCluster!.entities).not.toContain('nvidia');
+    expect(gptCluster!.entities).toContain('nvidia');
   }, 60000); // nhiều lượt gọi DB qua mạng nên cho thời gian rộng
 });
 

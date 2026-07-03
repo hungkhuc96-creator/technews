@@ -31,14 +31,16 @@ describe('bestCluster', () => {
     { id: 'c-iphone', centroid: [0, 1, 0], entities: ['iphone', 'apple'] },
   ];
 
-  it('nhập cụm khi đủ giống + trùng thực thể', () => {
+  it('chọn cụm giống nhất + báo có trùng thực thể', () => {
     const r = bestCluster([0.98, 0.05, 0], ['gpt-5.2'], candidates);
     expect(r?.clusterId).toBe('c-gpt');
+    expect(r?.overlap).toBe(true);
   });
 
-  it('không nhập nếu không trùng thực thể (dù vector giống)', () => {
+  it('vector giống nhưng KHÁC thực thể → vẫn đề cử, nhưng overlap=false (để AI xử)', () => {
     const r = bestCluster([1, 0, 0], ['samsung'], candidates);
-    expect(r).toBeNull();
+    expect(r?.clusterId).toBe('c-gpt');
+    expect(r?.overlap).toBe(false);
   });
 
   it('không nhập nếu cosine dưới ngưỡng', () => {
