@@ -20,7 +20,8 @@
     "ingest:youtube": "node --env-file=.env.local --import tsx scripts/ingest-youtube.ts",
     "summarize:videos": "node --env-file=.env.local --import tsx scripts/summarize-videos.ts",
     "ingest:reddit": "node --env-file=.env.local --import tsx scripts/ingest-reddit.ts",
-    "ingest:x": "node --env-file=.env.local --import tsx scripts/ingest-x.ts"
+    "ingest:x": "node --env-file=.env.local --import tsx scripts/ingest-x.ts",
+    "digest": "node --env-file=.env.local --import tsx scripts/digest.ts"
   },
   "keywords": [],
   "author": "",

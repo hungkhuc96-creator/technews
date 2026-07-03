@@ -1,0 +1,62 @@
+name: Bản tin sáng (Telegram)
+
+# Gửi bản tin 5 tin nóng nhất vào kênh Telegram mỗi sáng.
+on:
+  schedule:
+    - cron: '0 0 * * *'   # 00:00 UTC = 07:00 sáng giờ VN
+  workflow_dispatch: {}
+
+concurrency:
+  group: digest
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write   # để bước báo lỗi tạo/ghi GitHub Issue
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Tạo .env.local
+        run: |
+          cat > .env.local <<EOF
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID=${{ secrets.TELEGRAM_CHANNEL_ID }}
+          EOF
+
+      - run: npm install --no-audit --no-fund
+      - run: npm run digest
+
+      - name: Báo lỗi qua GitHub Issue
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = 'pipeline-failure';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: label,
+            });
+            if (open.length) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: open[0].number,
+                body: `Lại hỏng — \`${context.workflow}\` — ${runUrl}`,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title: '⚠️ Pipeline hỏng — cần kiểm tra',
+                labels: [label],
+                body: `Workflow **${context.workflow}** vừa hỏng.\n\nXem log: ${runUrl}\n\nSửa xong hãy **đóng issue này**; lần hỏng sau sẽ mở issue mới.`,
+              });
+            }
