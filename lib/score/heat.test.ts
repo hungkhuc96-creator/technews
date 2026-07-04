@@ -2,8 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { pressHeat, engagementHeat, recencyHeat } from './heat';
 
 describe('pressHeat', () => {
-  it('cơ bản = √n_sources / (age + 2)^1.5', () => {
-    expect(pressHeat(9, 0)).toBeCloseTo(3 / Math.pow(2, 1.5), 4);
+  it('cơ bản = √n / (age+2)^1.5 × xác nhận chéo (+40%/nguồn, trần 6)', () => {
+    // 9 nguồn: √9=3, hệ số xác nhận chéo chạm trần ×(1+0.4×5)=3
+    expect(pressHeat(9, 0)).toBeCloseTo((3 / Math.pow(2, 1.5)) * 3, 4);
+    // 1 nguồn: không có xác nhận chéo (×1)
+    expect(pressHeat(1, 0)).toBeCloseTo(1 / Math.pow(2, 1.5), 4);
   });
 
   it('cùng số nguồn, tin cũ hơn thì nóng thấp hơn', () => {
@@ -30,6 +33,14 @@ describe('pressHeat', () => {
     expect(pressHeat(2, 5, { hasTier1: true })).toBeGreaterThan(pressHeat(2, 5));
   });
 
+  it('XÁC NHẬN CHÉO (case thật 4/7): cụm 3 nguồn đang lan phải THẮNG tin lẻ vừa đăng', () => {
+    // Từng xảy ra: top 15 có 11 tin 1-nguồn, cụm 11 nguồn rớt hạng 36 — vì tuổi
+    // trộn phạt mọi cụm (gom nguồn cần thời gian) mà điểm cộng √n quá yếu.
+    const cluster3src = pressHeat(3, 6, { newSources12h: 3, hasTier1: true, firstSeenAgeHours: 12 });
+    const freshSingle = pressHeat(1, 1.5, { hasTier1: true, firstSeenAgeHours: 1.5 });
+    expect(cluster3src).toBeGreaterThan(freshSingle);
+  });
+
   it('CHỐNG HỒI MÁU (case Sony thật): tin 2.5 ngày có báo đăng lại KHÔNG vượt tin mới', () => {
     // Cụm Sony: 11 nguồn, bài mới nhất 0.2h (báo đăng lại), tin gốc 59h trước.
     // Từng chiếm "Nóng nhất" vì tuổi tính theo bài mới nhất. Nay tuổi trộn 30%
@@ -40,11 +51,11 @@ describe('pressHeat', () => {
   });
 
   it('tuổi trộn: 70% tuổi bài mới nhất + 30% tuổi cụm (không có firstSeen → chỉ tuổi bài)', () => {
-    // firstSeenAgeHours=100 (>72h) còn dính thêm phạt necro ×0.5
+    // 5 nguồn → xác nhận chéo ×(1+0.4×4)=2.6; firstSeen>72h → thêm phạt necro ×0.5
     expect(pressHeat(5, 1, { firstSeenAgeHours: 100 })).toBeCloseTo(
-      (Math.sqrt(5) / Math.pow(0.7 * 1 + 0.3 * 100 + 2, 1.5)) * 0.5, 6);
+      (Math.sqrt(5) / Math.pow(0.7 * 1 + 0.3 * 100 + 2, 1.5)) * 2.6 * 0.5, 6);
     // không truyền firstSeen → tuổi = tuổi bài mới nhất như cũ
-    expect(pressHeat(9, 0)).toBeCloseTo(3 / Math.pow(2, 1.5), 6);
+    expect(pressHeat(9, 0)).toBeCloseTo((3 / Math.pow(2, 1.5)) * 3, 6);
   });
 
   it('tin đang diễn biến THẬT (nhiều nguồn dồn dập) vẫn giữ được độ nóng hợp lý', () => {
