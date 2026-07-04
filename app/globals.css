@@ -664,3 +664,31 @@ a { color: inherit; text-decoration: none; }
 .article-page .reader-copyright { margin-top: 14px; }
 /* Link tiêu đề trên card: giữ nguyên màu chữ (chỉ để crawl/Cmd+click) */
 .title-link { color: inherit; text-decoration: none; }
+
+/* Ẩn về hình nhưng máy đọc màn hình + Google vẫn thấy (H1 trang chủ) */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* ===== Footer toàn site ===== */
+.site-footer { border-top: 1px solid var(--border); margin-top: 40px; }
+.site-footer-inner {
+  max-width: 720px; margin: 0 auto; padding: 22px 20px 28px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px;
+  color: var(--text-faint); font-size: 13px;
+}
+.site-footer-brand { font-weight: 700; color: var(--text-dim); }
+.site-footer-nav { display: flex; gap: 16px; }
+.site-footer-nav a { color: var(--text-dim); text-decoration: none; font-weight: 600; }
+.site-footer-nav a:hover { color: var(--text); }
+.site-footer-note { flex-basis: 100%; }
+
+/* ===== Trang tĩnh (giới thiệu / liên hệ / chính sách) ===== */
+.static-page { font-size: 16px; line-height: 1.75; color: var(--text-dim); }
+.static-page h2 { color: var(--text); font-size: 19px; margin: 26px 0 10px; }
+.static-page p { margin: 0 0 14px; }
+.static-page ul { margin: 0 0 14px; padding-left: 22px; }
+.static-page li { margin-bottom: 8px; }
+.static-page a { color: var(--text); font-weight: 600; }
+.static-page strong { color: var(--text); }

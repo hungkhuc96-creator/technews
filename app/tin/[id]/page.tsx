@@ -8,10 +8,16 @@ import { sourceLabel } from '@/lib/feed/format';
 import { DetailSummary, VideoSummary } from '@/components/ReaderLazy';
 import { Logo } from '@/components/Logo';
 import { youtubeId } from '@/lib/feed/youtube';
+import { articleJsonLd } from '@/lib/seo/jsonld';
 
 // Trang chi tiết 1 tin — để CHIA SẺ (og:tags cho Facebook/Zalo) + SEO (Google
-// index từng tin). Cache CDN 5 phút; nội dung tin ít đổi nên đủ tươi.
-export const revalidate = 300;
+// index từng tin). Cache CDN 1 giờ; nội dung tin ít đổi nên đủ tươi.
+export const revalidate = 3600;
+// Route động cần generateStaticParams (dù rỗng) để Next bật cache ISR — thiếu nó
+// trang bị render lại MỖI lượt xem (đo thật: TTFB 1,3s thay vì 0,17s như trang chủ).
+export function generateStaticParams(): { id: string }[] {
+  return [];
+}
 
 // cache(): generateMetadata + page cùng 1 request chỉ truy vấn DB MỘT lần.
 const loadItem = cache(async (id: string) => getFeedItem(createServiceClient(), id));
@@ -39,6 +45,8 @@ export async function generateMetadata(
     alternates: { canonical: `/tin/${id}` },
     openGraph: {
       title, description, url: `/tin/${id}`, siteName: 'peek', type: 'article',
+      publishedTime: item.publishedAt,
+      modifiedTime: item.updatedAt ?? item.publishedAt,
       ...(item.imageUrl ? { images: [{ url: item.imageUrl }] } : {}),
     },
     twitter: { card: item.imageUrl ? 'summary_large_image' : 'summary' },
@@ -56,6 +64,11 @@ export default async function TinPage({ params }: { params: Promise<{ id: string
 
   return (
     <div className="article-page">
+      {/* JSON-LD (NewsArticle + Breadcrumb) — vé vào Google News/Top Stories */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd(item)) }}
+      />
       <header className="article-head">
         <Link href="/" className="logo-link"><Logo /></Link>
         <Link href="/" className="article-home">← Trang chủ</Link>
@@ -79,7 +92,7 @@ export default async function TinPage({ params }: { params: Promise<{ id: string
           </div>
         ) : item.imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img className="article-banner" src={item.imageUrl} alt="" />
+          <img className="article-banner" src={item.imageUrl} alt={title} />
         )}
 
         {item.summary && (
