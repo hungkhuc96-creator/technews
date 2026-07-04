@@ -27,6 +27,8 @@ export const metadata: Metadata = {
   },
   twitter: { card: 'summary_large_image' },
   robots: { index: true, follow: true },
+  // Xác minh chủ sở hữu với Google Search Console.
+  verification: { google: 'CpentNdP8PdWdWEXhJrUgD30EPOGccTqU1OrY4xTnPs' },
 };
 
 // theme-color: thanh trình duyệt (mobile) tiệp màu nền tối của app.
