@@ -11,18 +11,21 @@
 //   1 báo đăng lại → chiếm "Nóng nhất"); tin đang diễn biến thật (nhiều nguồn
 //   dồn dập) vẫn nóng nhờ điểm tốc độ
 // - phạt tuổi mạnh (mũ 1.5) để feed luôn tươi
-// - cụm sống >72h nhân 0.5: lưới chặn "hồi máu" tầng hai
+// - cụm sống >48h nhân 0.5: lưới chặn "hồi máu" tầng hai
 // - tin thuần Mỹ (nhà mạng US...) nhân 0.4: đúng nhưng vô nghĩa với người đọc Việt
 const TIME_GRAVITY = 1.5;
 const VELOCITY_WEIGHT = 1.5;
 const TIER1_BONUS = 0.5;
-const FRESH_AGE_WEIGHT = 0.7;   // tuổi trộn: 70% bài mới nhất + 30% tuổi cụm
+// Tuổi trộn: 80% bài mới nhất + 20% tuổi cụm. Từng để 70/30 nhưng phạt tuổi cụm
+// quá nặng: tin đang có DIỄN BIẾN (Anthropic×Samsung, bài mới 1h) thua tin lẻ 3h.
+// 20% đủ ghìm tin cũ vì đã có trần necro 48h chặn phía sau.
+const FRESH_AGE_WEIGHT = 0.8;
 // Hệ số XÁC NHẬN CHÉO: mỗi nguồn thêm nhân +40%, trần 6 nguồn (×3). Cần vì tuổi
 // trộn phạt mọi cụm (gom nguồn cần thời gian) — thiếu hệ số này, tin lẻ vừa đăng
 // thắng sạch tin gộp (đã xảy ra: top 15 có 11 tin 1-nguồn, cụm 11 nguồn hạng 36).
 const CORROBORATION_BOOST = 0.4;
 const CORROBORATION_CAP = 6;
-const NECRO_HOURS = 72;
+const NECRO_HOURS = 48;  // tin sống >2 ngày là "cũ" — 72h từng để lọt tin Sony 64h
 const NECRO_FACTOR = 0.5;
 const US_ONLY_FACTOR = 0.4;
 

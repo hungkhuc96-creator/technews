@@ -41,6 +41,17 @@ describe('pressHeat', () => {
     expect(cluster3src).toBeGreaterThan(freshSingle);
   });
 
+  it('DIỄN BIẾN MỚI (case Anthropic×Samsung 4/7): cụm 3 nguồn có bài mới 1h phải trên tin lẻ 3h', () => {
+    // Từng xảy ra: tin Anthropic×Samsung (3 nguồn, bài mới 1.1h, cụm 33h) đứng
+    // hạng 7, THUA tin lẻ Ayaneo 2.7h — vì phạt tuổi cụm 30% quá nặng với tin
+    // đang có diễn biến. Nay 20% + hạ trần necro 72h→48h để Sony không lợi dụng.
+    const anthropic = pressHeat(3, 1.1, { newSources12h: 1, hasTier1: true, firstSeenAgeHours: 33 });
+    const singleNewer = pressHeat(1, 2.7, { firstSeenAgeHours: 3 });
+    const sonyOld = pressHeat(11, 4.7, { newSources12h: 1, hasTier1: true, firstSeenAgeHours: 64 });
+    expect(anthropic).toBeGreaterThan(singleNewer);
+    expect(anthropic).toBeGreaterThan(sonyOld); // tin >2 ngày vẫn bị ghìm dưới
+  });
+
   it('CHỐNG HỒI MÁU (case Sony thật): tin 2.5 ngày có báo đăng lại KHÔNG vượt tin mới', () => {
     // Cụm Sony: 11 nguồn, bài mới nhất 0.2h (báo đăng lại), tin gốc 59h trước.
     // Từng chiếm "Nóng nhất" vì tuổi tính theo bài mới nhất. Nay tuổi trộn 30%
@@ -50,10 +61,10 @@ describe('pressHeat', () => {
     expect(sonyStale).toBeLessThan(freshNews);
   });
 
-  it('tuổi trộn: 70% tuổi bài mới nhất + 30% tuổi cụm (không có firstSeen → chỉ tuổi bài)', () => {
-    // 5 nguồn → xác nhận chéo ×(1+0.4×4)=2.6; firstSeen>72h → thêm phạt necro ×0.5
+  it('tuổi trộn: 80% tuổi bài mới nhất + 20% tuổi cụm (không có firstSeen → chỉ tuổi bài)', () => {
+    // 5 nguồn → xác nhận chéo ×(1+0.4×4)=2.6; firstSeen>48h → thêm phạt necro ×0.5
     expect(pressHeat(5, 1, { firstSeenAgeHours: 100 })).toBeCloseTo(
-      (Math.sqrt(5) / Math.pow(0.7 * 1 + 0.3 * 100 + 2, 1.5)) * 2.6 * 0.5, 6);
+      (Math.sqrt(5) / Math.pow(0.8 * 1 + 0.2 * 100 + 2, 1.5)) * 2.6 * 0.5, 6);
     // không truyền firstSeen → tuổi = tuổi bài mới nhất như cũ
     expect(pressHeat(9, 0)).toBeCloseTo((3 / Math.pow(2, 1.5)) * 3, 6);
   });
