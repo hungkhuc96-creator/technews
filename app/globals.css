@@ -32,7 +32,10 @@ a { color: inherit; text-decoration: none; }
 }
 /* Logo "peek": bong bóng vàng 2 mắt liếc + wordmark Montserrat + tagline.
    Dáng bong bóng (3 góc tròn, góc trái-dưới nhọn) là motif bo góc của cả UI. */
-.logo { display: flex; align-items: center; gap: 9px; justify-self: start; }
+.logo { display: flex; align-items: center; gap: 9px; }
+/* Bọc <a> quanh Logo trong header (grid) — chính wrapper này mới là grid item,
+   nên justify-self chuyển ra đây (giữ nguyên vị trí logo như trước khi bọc <a>). */
+.logo-home { display: flex; align-items: center; justify-self: start; text-decoration: none; cursor: pointer; }
 .logo-bubble {
   width: 30px; height: 30px; flex: none;
   background: var(--accent); border-radius: 9px 9px 9px 3px;

@@ -112,7 +112,11 @@ export function FeedApp({
   return (
     <>
       <header className="app-header">
-        <Logo />
+        {/* Thẻ <a> THẬT (không phải Link SPA) — bấm là trình duyệt tải lại
+            trang từ đầu, tự về top, xoá mọi bộ lọc/vị trí cuộn hiện có. */}
+        <a href="/" className="logo-home" aria-label="Về trang chủ (tải lại trang)">
+          <Logo />
+        </a>
         <label className="search">
           <span>🔍</span>
           <input
