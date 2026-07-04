@@ -26,7 +26,7 @@ a { color: inherit; text-decoration: none; }
 .app-header {
   position: sticky; top: 0; z-index: 50; height: 64px;
   display: grid; grid-template-columns: 1fr minmax(0, 560px) 1fr; align-items: center;
-  gap: 16px; padding: 0 24px;
+  gap: 16px; padding: 0 26px; /* khớp .layout (26px) để logo thẳng lề với box bên dưới */
   background: var(--header-bg); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
 }
