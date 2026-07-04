@@ -21,7 +21,6 @@ export function FeedApp({
   counts: Record<string, number>;
   initialOffset: number;
 }) {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [nav, setNav] = useState('Trang chủ');
   const [source, setSource] = useState('all');
   const [category, setCategory] = useState('Tất cả');
@@ -94,17 +93,6 @@ export function FeedApp({
     return () => ob.disconnect();
   }, [loadMore, loadError]);
 
-  // Đọc theme đã lưu khi mở trang.
-  useEffect(() => {
-    const saved = localStorage.getItem('nong-theme');
-    if (saved === 'light' || saved === 'dark') setTheme(saved);
-  }, []);
-  // Áp theme lên <html> + lưu lại.
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem('nong-theme', theme);
-  }, [theme]);
-
   const filtered = useMemo(() => {
     // "Mới nhất" dùng kho server (đã đúng thứ tự thời gian trên toàn kho).
     let list = mode === 'recent' ? recentItems : items;
@@ -134,18 +122,16 @@ export function FeedApp({
           />
         </label>
         <div className="header-actions">
-          {/* Desktop: nút đổi theme rời (nav nằm ở cột trái) */}
-          <span
-            className="icon-btn theme-desktop"
-            title="Giao diện sáng/tối"
-            onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
-          >
-            {theme === 'dark' ? '☀' : '☾'}
-          </span>
-
-          {/* Mobile: 1 menu gộp (cột trái bị ẩn) */}
+          {/* Mobile: 1 menu gộp (cột trái bị ẩn). Icon đổi ☰→✕ + nền nổi bật khi mở
+              để việc bấm luôn có phản hồi rõ ràng (trước đây bấm xong không thấy gì đổi). */}
           <div className="menu-wrap">
-            <span className="icon-btn menu-btn" title="Menu" onClick={() => setMenuOpen((v) => !v)}>☰</span>
+            <span
+              className={`icon-btn menu-btn${menuOpen ? ' open' : ''}`}
+              title="Menu"
+              onClick={() => setMenuOpen((v) => !v)}
+            >
+              {menuOpen ? '✕' : '☰'}
+            </span>
             {menuOpen && (
               <>
                 <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
@@ -165,11 +151,6 @@ export function FeedApp({
                     rel="noopener noreferrer"
                     onClick={() => setMenuOpen(false)}
                   >🎁 Deal người nhà</a>
-                  <div className="menu-sep" />
-                  <div
-                    className="menu-item"
-                    onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
-                  >{theme === 'dark' ? '☀ Chế độ sáng' : '☾ Chế độ tối'}</div>
                 </div>
               </>
             )}

@@ -7,16 +7,15 @@
 export const X_HANDLES: string[] = [
   // CEO / lãnh đạo hãng công nghệ
   'elonmusk', 'sama', 'sundarpichai', 'tim_cook', 'satyanadella',
-  'pmarca', 'AravSrinivas', 'karpathy', 'demishassabis',
+  'AravSrinivas', 'karpathy', 'demishassabis',
   // Leaker / nhà báo mảng công nghệ (rò rỉ, tin nội bộ)
-  'evleaks', 'UniverseIce', 'Tom_Warren', 'markgurman', 'rolandquandt', 'mingchikuo',
+  'evleaks', 'Tom_Warren', 'markgurman', 'rolandquandt', 'mingchikuo',
   // Reviewer / YouTuber công nghệ (phone + laptop)
   'MKBHD', 'Dave2D', 'UrAvgConsumer',
   'Mrwhosetheboss',   // Arun Maini — phone, kênh review phone lớn nhất YouTube
   'LinusTech',        // Linus Sebastian (Linus Tech Tips) — laptop/PC
   'austinnotduncan',  // Austin Evans — phone/laptop
   'ijustine',         // iJustine — Apple/phone
-  'ZacksJerryRig',    // JerryRigEverything — mổ xẻ/độ bền phone
   'SuperSaf',         // SuperSaf — camera phone
   'theMrMobile',      // Michael Fisher (MrMobile) — phone
   'Flossy_Carter',    // Flossy Carter — phone

@@ -10,6 +10,8 @@ export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; on
   const ts = item.publishedAt;
   const updatedLater = item.updatedAt !== null
     && new Date(item.updatedAt).getTime() - new Date(item.publishedAt).getTime() > 2 * 3600 * 1000;
+  const tsRel = relativeTime(ts, now);
+  const updatedTs = updatedLater ? relativeTime(item.updatedAt!, now) : null;
   const avatars = item.sources.length > 0
     ? item.sources
     : [{ initial: (item.sourceName ?? 'N').trim().charAt(0).toUpperCase(), color: 'var(--accent-ink)', logo: null as string | null }];
@@ -21,8 +23,9 @@ export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; on
         <span className="src-type">{metaFor(item.sourceTypes[0] ?? 'press').icon}</span>
         <span>{item.sourceName ?? 'Nguồn'}</span>
         <span className="dot">·</span>
-        <span>{relativeTime(ts, now)}</span>
-        {updatedLater && <span>· cập nhật {relativeTime(item.updatedAt!, now)}</span>}
+        {/* Màn rộng: hiện cả 2 mốc giờ. Màn hẹp: CHỈ 1 (ưu tiên "cập nhật" nếu có). */}
+        <span className="meta-ts-full">{tsRel}{updatedTs && ` · cập nhật ${updatedTs}`}</span>
+        <span className="meta-ts-compact">{updatedTs ? `cập nhật ${updatedTs}` : tsRel}</span>
         <span className="hero-hot">🔥 Nóng nhất</span>
       </div>
       <h2 className="hero-title">

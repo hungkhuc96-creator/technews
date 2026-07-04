@@ -113,6 +113,7 @@ function PressCard({ item, ts, now }: { item: FeedItem; ts: string; now?: Date }
   // bài đại diện nên không tự "trẻ lại" khi 1 báo đăng lại muộn).
   const updatedLater = item.updatedAt !== null
     && updatedMs - new Date(item.publishedAt).getTime() > 2 * 3600 * 1000;
+  const updatedTs = updatedLater ? relativeTime(item.updatedAt!, now) : null;
   return (
     <>
       {item.imageUrl && (
@@ -122,8 +123,10 @@ function PressCard({ item, ts, now }: { item: FeedItem; ts: string; now?: Date }
       <div className="card-meta">
         <SrcLogo item={item} />
         <span>{item.sourceName ?? 'Nguồn'}</span>
-        <span>· {ts}</span>
-        {updatedLater && <span>· cập nhật {relativeTime(item.updatedAt!, now)}</span>}
+        {/* Màn rộng: hiện cả 2 mốc giờ. Màn hẹp: CHỈ 1 (ưu tiên "cập nhật" nếu có)
+            — 2 mốc giờ chung dòng từng đè chữ lên nhau trên mobile. */}
+        <span className="meta-ts-full">· {ts}{updatedTs && ` · cập nhật ${updatedTs}`}</span>
+        <span className="meta-ts-compact">· {updatedTs ? `cập nhật ${updatedTs}` : ts}</span>
         {/* LÝ DO hot — 1 badge duy nhất, ưu tiên: đang lên nhanh > nóng > vừa cập nhật */}
         {item.rising ? (
           <span className="meta-rising">📈 Đang lên nhanh</span>

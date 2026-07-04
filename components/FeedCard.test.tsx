@@ -34,7 +34,9 @@ describe('FeedCard', () => {
     expect(screen.getByText('OpenAI ra mắt GPT-5.2')).toBeDefined();
     expect(screen.getByText(/The Verge/)).toBeDefined();
     expect(screen.getByText(/7 nguồn đưa tin/)).toBeDefined();
-    expect(screen.getByText(/1 giờ trước/)).toBeDefined();
+    // 2 span cùng nội dung (bản đủ cho màn rộng + bản rút gọn cho mobile, CSS
+    // chọn 1 theo bề rộng màn hình) → dùng getAllByText, không getByText.
+    expect(screen.getAllByText(/1 giờ trước/).length).toBe(2);
   });
 
   it('giờ = giờ bài của nguồn được nêu tên; bài mới hơn của cụm hiện "cập nhật" riêng', () => {
@@ -44,10 +46,10 @@ describe('FeedCard', () => {
         now={new Date('2026-06-24T12:00:00.000Z')}
       />,
     );
-    // "The Verge · 4 ngày trước" (giờ THẬT của bài đại diện — không mượn giờ báo
-    // khác đăng lại) + "cập nhật 1 giờ trước" (cụm có bài mới hơn)
-    expect(screen.getByText(/4 ngày trước/)).toBeDefined();
-    expect(screen.getByText(/cập nhật 1 giờ trước/)).toBeDefined();
+    // "The Verge · 4 ngày trước · cập nhật 1 giờ trước" (bản đủ, màn rộng) +
+    // "The Verge · cập nhật 1 giờ trước" (bản rút gọn, mobile — chỉ 1 mốc giờ)
+    expect(screen.getAllByText(/4 ngày trước/).length).toBe(1); // chỉ bản đủ có mốc giờ gốc
+    expect(screen.getAllByText(/cập nhật 1 giờ trước/).length).toBe(2); // cả 2 bản đều có mốc "cập nhật"
   });
 
   it('không hiện "cập nhật" khi bài mới nhất chỉ hơn bài đại diện dưới 2 giờ', () => {
