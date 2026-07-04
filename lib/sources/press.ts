@@ -80,6 +80,10 @@ export async function parsePressFeed(
       lang: null,
       metrics: {},
       imageUrl: extractImage(item as ImageItem),
+      // Nhãn chuyên mục (một số feed trả object thay vì chuỗi → ép về chuỗi).
+      categories: (item.categories ?? [])
+        .map((c) => (typeof c === 'string' ? c : String((c as { _?: string })._ ?? '')))
+        .filter(Boolean),
     } satisfies NormalizedPost;
   });
 }

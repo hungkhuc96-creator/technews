@@ -20,7 +20,7 @@ export async function ingestPress(
     try {
       const xml = await fetchFeed(source.feedUrl, deps.fetchImpl);
       // Lọc RÁC ngay tại nguồn (deal/khuyến mãi + đố vui Wordle...) — không cho vào DB.
-      const posts = (await parsePressFeed(xml, source)).filter((p) => !isNoise(p.title));
+      const posts = (await parsePressFeed(xml, source)).filter((p) => !isNoise(p.title, p.categories));
       fetched += posts.length;
       inserted += await deps.upsert(posts);
     } catch (err) {

@@ -26,4 +26,5 @@ export interface NormalizedPost {
   lang: string | null;
   metrics: PostMetrics;
   imageUrl?: string | null; // thumbnail (báo chí lấy từ RSS)
+  categories?: string[]; // nhãn <category> trong RSS (lọc chuyên mục ngoài công nghệ)
 }
