@@ -5,7 +5,7 @@ import { selectDigestItems, type DigestCandidate } from '../lib/digest/selectIte
 import { formatDigest, type DigestItem } from '../lib/digest/formatTelegram.js';
 import { sendTelegramMessage } from '../lib/notify/telegram.js';
 
-const HOST = process.env.SITE_URL ?? 'https://technews-rho-three.vercel.app';
+const HOST = process.env.SITE_URL ?? 'https://peek.vn';
 const CANDIDATE_POOL = 25; // lấy dư để còn chọn sau khi loại tin đã gửi
 const PICK = 5;
 const SENT_WINDOW_DAYS = 7;

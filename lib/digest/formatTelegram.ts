@@ -26,7 +26,7 @@ function clampSummary(s: string, max = 180): string {
 // Soạn 1 bản tin Telegram (HTML). THUẦN: không đụng DB/mạng → dễ test.
 export function formatDigest(opts: {
   date: string; // vd "03/07"
-  host: string; // vd "https://technews-rho-three.vercel.app"
+  host: string; // vd "https://peek.vn"
   items: DigestItem[];
 }): string {
   const lines: string[] = [`🔥 <b>peek — Bản tin công nghệ · ${escapeHtml(opts.date)}</b>`, ''];
