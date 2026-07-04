@@ -109,6 +109,10 @@ function PressCard({ item, ts, now }: { item: FeedItem; ts: string; now?: Date }
   // "Vừa cập nhật": có bài mới trong 2h và không phải tin 1 nguồn lẻ loi.
   const updatedMs = new Date(item.updatedAt ?? item.publishedAt).getTime();
   const fresh = item.nSources >= 2 && (now ?? new Date()).getTime() - updatedMs < 2 * 3600 * 1000;
+  // Cụm có bài mới hơn bài đại diện >2h → ghi rõ "cập nhật" (giờ chính là giờ
+  // bài đại diện nên không tự "trẻ lại" khi 1 báo đăng lại muộn).
+  const updatedLater = item.updatedAt !== null
+    && updatedMs - new Date(item.publishedAt).getTime() > 2 * 3600 * 1000;
   return (
     <>
       {item.imageUrl && (
@@ -119,6 +123,7 @@ function PressCard({ item, ts, now }: { item: FeedItem; ts: string; now?: Date }
         <SrcLogo item={item} />
         <span>{item.sourceName ?? 'Nguồn'}</span>
         <span>· {ts}</span>
+        {updatedLater && <span>· cập nhật {relativeTime(item.updatedAt!, now)}</span>}
         {/* LÝ DO hot — 1 badge duy nhất, ưu tiên: đang lên nhanh > nóng > vừa cập nhật */}
         {item.rising ? (
           <span className="meta-rising">📈 Đang lên nhanh</span>
@@ -160,7 +165,10 @@ function PressCard({ item, ts, now }: { item: FeedItem; ts: string; now?: Date }
 
 export function FeedCard({ item, now, onOpen }: { item: FeedItem; now?: Date; onOpen?: () => void }) {
   const type = item.sourceTypes[0] ?? 'press';
-  const ts = relativeTime(item.updatedAt ?? item.publishedAt, now);
+  // Giờ hiển thị = giờ bài của CHÍNH nguồn được nêu tên (bài đại diện) — không phải
+  // bài mới nhất của cụm, tránh "The Verge · 1 giờ trước" khi The Verge đăng 2 ngày
+  // trước còn "1 giờ trước" là báo khác đăng lại. Bài mới hơn hiện "cập nhật" riêng.
+  const ts = relativeTime(item.publishedAt, now);
   return (
     <article className="card" onClick={onOpen}>
       {type === 'x' ? (

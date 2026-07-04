@@ -37,16 +37,27 @@ describe('FeedCard', () => {
     expect(screen.getByText(/1 giờ trước/)).toBeDefined();
   });
 
-  it('dùng giờ bài MỚI NHẤT khi cụm có bài mới hơn bài đại diện', () => {
+  it('giờ = giờ bài của nguồn được nêu tên; bài mới hơn của cụm hiện "cập nhật" riêng', () => {
     render(
       <FeedCard
         item={{ ...item, publishedAt: '2026-06-20T12:00:00.000Z', updatedAt: '2026-06-24T11:00:00.000Z' }}
         now={new Date('2026-06-24T12:00:00.000Z')}
       />,
     );
-    // dùng giờ của bài mới nhất (1 giờ trước), không phải bài đại diện (4 ngày trước)
-    expect(screen.getByText(/1 giờ trước/)).toBeDefined();
-    expect(screen.queryByText(/4 ngày trước/)).toBeNull();
+    // "The Verge · 4 ngày trước" (giờ THẬT của bài đại diện — không mượn giờ báo
+    // khác đăng lại) + "cập nhật 1 giờ trước" (cụm có bài mới hơn)
+    expect(screen.getByText(/4 ngày trước/)).toBeDefined();
+    expect(screen.getByText(/cập nhật 1 giờ trước/)).toBeDefined();
+  });
+
+  it('không hiện "cập nhật" khi bài mới nhất chỉ hơn bài đại diện dưới 2 giờ', () => {
+    render(
+      <FeedCard
+        item={{ ...item, publishedAt: '2026-06-24T10:00:00.000Z', updatedAt: '2026-06-24T11:00:00.000Z' }}
+        now={new Date('2026-06-24T12:00:00.000Z')}
+      />,
+    );
+    expect(screen.queryByText(/cập nhật/)).toBeNull();
   });
 
   it('thẻ báo hiển thị đoạn tóm tắt; nếu không có thì hiện bullet', () => {

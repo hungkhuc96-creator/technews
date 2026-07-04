@@ -5,7 +5,11 @@ import { metaFor } from '../lib/feed/sourceMeta';
 // Thẻ HERO vàng cho tin nóng nhất (thường là cụm báo chí nhiều nguồn).
 export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; onOpen?: () => void }) {
   const title = item.titleVi ?? item.title;
-  const ts = item.updatedAt ?? item.publishedAt;
+  // Giờ = giờ bài của CHÍNH nguồn được nêu tên (bài đại diện); bài mới hơn của
+  // cụm (báo khác đăng sau) hiện "cập nhật" riêng — xem chú thích ở FeedCard.
+  const ts = item.publishedAt;
+  const updatedLater = item.updatedAt !== null
+    && new Date(item.updatedAt).getTime() - new Date(item.publishedAt).getTime() > 2 * 3600 * 1000;
   const avatars = item.sources.length > 0
     ? item.sources
     : [{ initial: (item.sourceName ?? 'N').trim().charAt(0).toUpperCase(), color: 'var(--accent-ink)', logo: null as string | null }];
@@ -18,6 +22,7 @@ export function HeroCard({ item, now, onOpen }: { item: FeedItem; now?: Date; on
         <span>{item.sourceName ?? 'Nguồn'}</span>
         <span className="dot">·</span>
         <span>{relativeTime(ts, now)}</span>
+        {updatedLater && <span>· cập nhật {relativeTime(item.updatedAt!, now)}</span>}
         <span className="hero-hot">🔥 Nóng nhất</span>
       </div>
       <h2 className="hero-title">

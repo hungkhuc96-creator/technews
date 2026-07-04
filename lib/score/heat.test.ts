@@ -30,9 +30,29 @@ describe('pressHeat', () => {
     expect(pressHeat(2, 5, { hasTier1: true })).toBeGreaterThan(pressHeat(2, 5));
   });
 
-  it('chống hồi máu: cụm sống >72h bị nhân 0.5 dù vừa có bài mới', () => {
-    expect(pressHeat(5, 1, { firstSeenAgeHours: 100 })).toBeCloseTo(pressHeat(5, 1) * 0.5, 6);
-    expect(pressHeat(5, 1, { firstSeenAgeHours: 48 })).toBeCloseTo(pressHeat(5, 1), 6);
+  it('CHỐNG HỒI MÁU (case Sony thật): tin 2.5 ngày có báo đăng lại KHÔNG vượt tin mới', () => {
+    // Cụm Sony: 11 nguồn, bài mới nhất 0.2h (báo đăng lại), tin gốc 59h trước.
+    // Từng chiếm "Nóng nhất" vì tuổi tính theo bài mới nhất. Nay tuổi trộn 30%
+    // tuổi cụm → phải THUA một tin mới bình thường (1h, 2 nguồn).
+    const sonyStale = pressHeat(11, 0.2, { newSources12h: 2, hasTier1: true, firstSeenAgeHours: 59 });
+    const freshNews = pressHeat(2, 1, { newSources12h: 2, firstSeenAgeHours: 1 });
+    expect(sonyStale).toBeLessThan(freshNews);
+  });
+
+  it('tuổi trộn: 70% tuổi bài mới nhất + 30% tuổi cụm (không có firstSeen → chỉ tuổi bài)', () => {
+    // firstSeenAgeHours=100 (>72h) còn dính thêm phạt necro ×0.5
+    expect(pressHeat(5, 1, { firstSeenAgeHours: 100 })).toBeCloseTo(
+      (Math.sqrt(5) / Math.pow(0.7 * 1 + 0.3 * 100 + 2, 1.5)) * 0.5, 6);
+    // không truyền firstSeen → tuổi = tuổi bài mới nhất như cũ
+    expect(pressHeat(9, 0)).toBeCloseTo(3 / Math.pow(2, 1.5), 6);
+  });
+
+  it('tin đang diễn biến THẬT (nhiều nguồn dồn dập) vẫn giữ được độ nóng hợp lý', () => {
+    // Sự kiện lớn 24h tuổi, bài mới 1h, 8 nguồn trong đó 4 nguồn trong 12h qua
+    // → vẫn phải nóng hơn hẳn tin lẻ 1 nguồn cùng giờ.
+    const developing = pressHeat(8, 1, { newSources12h: 4, hasTier1: true, firstSeenAgeHours: 24 });
+    const single = pressHeat(1, 1, { firstSeenAgeHours: 1 });
+    expect(developing).toBeGreaterThan(single);
   });
 
   it('tin thuần Mỹ bị nhân 0.4', () => {
