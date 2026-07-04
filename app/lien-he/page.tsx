@@ -4,7 +4,7 @@ import { Logo } from '@/components/Logo';
 
 export const metadata: Metadata = {
   title: 'Liên hệ — peek',
-  description: 'Liên hệ với peek: góp ý, báo lỗi, yêu cầu về nội dung và bản quyền.',
+  description: 'Liên hệ với peek: góp ý, báo lỗi, yêu cầu về nội dung.',
   alternates: { canonical: '/lien-he' },
 };
 
@@ -22,12 +22,6 @@ export default function LienHePage() {
         </p>
         <p>
           📧 <a href="mailto:hungkhuc96@gmail.com">hungkhuc96@gmail.com</a>
-        </p>
-        <h2>Yêu cầu về nội dung</h2>
-        <p>
-          Nếu bạn là đại diện nguồn tin và muốn điều chỉnh hoặc gỡ cách hiển thị nội dung
-          của mình trên peek, email cho chúng tôi kèm đường dẫn bài viết — yêu cầu hợp lệ
-          sẽ được xử lý trong vòng 48 giờ.
         </p>
       </main>
     </div>

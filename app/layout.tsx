@@ -14,16 +14,16 @@ const montserrat = Montserrat({ subsets: ['latin'], weight: '800', variable: '--
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL), // gốc cho og:url / og:image tương đối
-  title: 'peek — Feed tin công nghệ',
-  description: 'Liếc phát biết — tin công nghệ nóng nhất, tóm tắt tiếng Việt.',
+  title: 'peek - Liếc phát biết',
+  description: 'Liếc phát biết tin công nghệ nóng nhất hôm nay.',
   // Mặc định toàn site cho thẻ chia sẻ (Facebook/Zalo/Telegram) + Twitter card.
   // Ảnh og lấy tự động từ app/opengraph-image.tsx; trang /tin/ tự override.
   openGraph: {
     siteName: 'peek',
     type: 'website',
     locale: 'vi_VN',
-    title: 'peek — Feed tin công nghệ',
-    description: 'Liếc phát biết — tin công nghệ nóng nhất, tóm tắt tiếng Việt.',
+    title: 'peek - Liếc phát biết',
+    description: 'Liếc phát biết tin công nghệ nóng nhất hôm nay.',
   },
   twitter: { card: 'summary_large_image' },
   robots: { index: true, follow: true },

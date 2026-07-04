@@ -22,10 +22,10 @@ export default function ChinhSachPage() {
         <ul>
           <li>peek không yêu cầu tài khoản, không thu thập thông tin cá nhân của người đọc.</li>
           <li>
-            Trang dùng Vercel Analytics — thống kê lượt truy cập ẩn danh (không cookie theo
+            Trang thống kê lượt truy cập ẩn danh (không cookie theo
             dõi, không nhận diện cá nhân) để biết mục nào hữu ích.
           </li>
-          <li>Không bán, không chia sẻ dữ liệu cho bên thứ ba.</li>
+          <li>Không không chia sẻ dữ liệu cho bên thứ ba.</li>
         </ul>
 
         <h2>Nội dung &amp; bản quyền</h2>
@@ -35,7 +35,7 @@ export default function ChinhSachPage() {
             gốc. Bản quyền nội dung thuộc về nguồn phát hành, được ghi rõ trên từng tin.
           </li>
           <li>
-            Tóm tắt tiếng Việt do AI tạo tự động và có thể có sai sót — vui lòng đối chiếu
+            Tóm tắt tiếng Việt do AI tạo tự động và có thể có sai sót, vui lòng đối chiếu
             bài gốc trước khi trích dẫn lại. peek không chịu trách nhiệm cho quyết định đưa
             ra chỉ dựa trên bản tóm tắt.
           </li>

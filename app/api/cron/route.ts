@@ -4,18 +4,25 @@ export const dynamic = 'force-dynamic';
 // cron-job.org chỉ cần GỌI: https://<web>/api/cron?key=<CRON_SECRET>
 // Route này kiểm tra key rồi gọi GitHub workflow_dispatch bằng GH_DISPATCH_TOKEN.
 const REPO = 'hungkhuc96-creator/technews';
-const WORKFLOW = 'update-press.yml';
+// Allowlist workflow được phép kích từ ngoài: ?wf=press (mặc định) | digest.
+const WORKFLOWS: Record<string, string> = {
+  press: 'update-press.yml',
+  digest: 'digest.yml',
+};
 
 export async function GET(req: Request) {
   const key = new URL(req.url).searchParams.get('key');
   if (!process.env.CRON_SECRET || key !== process.env.CRON_SECRET) {
     return Response.json({ ok: false, error: 'sai hoặc thiếu key' }, { status: 401 });
   }
+  const wf = new URL(req.url).searchParams.get('wf') ?? 'press';
+  const workflow = WORKFLOWS[wf];
+  if (!workflow) return Response.json({ ok: false, error: 'wf không hợp lệ' }, { status: 400 });
   const token = process.env.GH_DISPATCH_TOKEN;
   if (!token) return Response.json({ ok: false, error: 'thiếu GH_DISPATCH_TOKEN' }, { status: 500 });
 
   const r = await fetch(
-    `https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`,
+    `https://api.github.com/repos/${REPO}/actions/workflows/${workflow}/dispatches`,
     {
       method: 'POST',
       headers: {

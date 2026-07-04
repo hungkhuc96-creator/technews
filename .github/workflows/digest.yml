@@ -1,13 +1,20 @@
-name: Bản tin sáng (Telegram)
+name: Bản tin Telegram (7h·12h·16h·19h VN)
 
-# Gửi bản tin 5 tin nóng nhất vào kênh Telegram, 2 lần/ngày.
-# Nhờ digest_log (chống lặp 7 ngày), bản trưa tự lấy 5 tin MỚI khác bản sáng.
+# Gửi bản tin 5 tin nóng nhất vào kênh Telegram, 4 lần/ngày.
+# Nhờ digest_log (chống lặp 7 ngày), mỗi bản tự lấy 5 tin MỚI khác bản trước.
+#
+# ĐÚNG GIỜ = cron-job.org gọi /api/cron?wf=digest tại 7:00/12:00/16:00/19:00 VN
+# (lịch GitHub trễ 5-30' là thường). Lịch dưới đây là DỰ PHÒNG, đặt 20' SAU giờ
+# đích: nếu cron-job.org đã gửi thì script tự bỏ qua (chốt chặn 90' trong
+# digest.ts); pinger chết thì bản tin vẫn tới, chỉ muộn ~20-50'.
 # LƯU Ý: tránh phút 0 — cron GitHub lúc "giờ chẵn" (nhất là 00:00 UTC) nghẽn toàn
 # cầu, job có thể bị TRỄ 30'+ hoặc BỎ QUA HẲN (đã xảy ra: bản sáng 4/7 không gửi).
 on:
   schedule:
-    - cron: '10 0 * * *'  # 00:10 UTC = 07:10 sáng giờ VN
-    - cron: '10 5 * * *'  # 05:10 UTC = 12:10 trưa giờ VN
+    - cron: '20 0 * * *'   # 00:20 UTC = 07:20 VN (dự phòng bản 7h)
+    - cron: '20 5 * * *'   # 05:20 UTC = 12:20 VN (dự phòng bản 12h)
+    - cron: '20 9 * * *'   # 09:20 UTC = 16:20 VN (dự phòng bản 16h)
+    - cron: '20 12 * * *'  # 12:20 UTC = 19:20 VN (dự phòng bản 19h)
   workflow_dispatch: {}
 
 concurrency:

@@ -1,7 +1,7 @@
 import { createServiceClient } from '../lib/db/client.js';
 import { createChat } from '../lib/summarize/llmClient.js';
 import { summarizeClusterById } from '../lib/summarize/summarizeById.js';
-import { selectDigestItems, type DigestCandidate } from '../lib/digest/selectItems.js';
+import { selectDigestItems, sentRecently, type DigestCandidate } from '../lib/digest/selectItems.js';
 import { formatDigest, type DigestItem } from '../lib/digest/formatTelegram.js';
 import { sendTelegramMessage } from '../lib/notify/telegram.js';
 
@@ -26,6 +26,19 @@ async function main() {
   }
 
   const client = createServiceClient();
+
+  // 0) Chốt chặn gửi đúp: có 2 đường kích (cron-job.org đúng giờ + GitHub dự
+  // phòng 20' sau) — bản gần nhất gửi chưa đầy 90' thì lượt này bỏ qua.
+  const { data: last } = await client
+    .from('digest_log')
+    .select('sent_at')
+    .order('sent_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (sentRecently(last?.sent_at ?? null, new Date())) {
+    console.log('Bản tin vừa gửi chưa đầy 90 phút — bỏ qua (tránh gửi đúp).');
+    return;
+  }
 
   // 1) Top cụm báo chí đang mở theo độ nóng (heat đã phạt tin cũ → top là tin gần).
   const { data: clusters, error: cErr } = await client

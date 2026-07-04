@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { selectDigestItems, type DigestCandidate } from './selectItems';
+import { sentRecently, selectDigestItems, type DigestCandidate } from './selectItems';
 
 const c = (id: string, titleVi: string | null = 'Tiêu đề'): DigestCandidate => ({
   clusterId: id, titleVi, summary: 'ý chính',
@@ -23,5 +23,18 @@ describe('selectDigestItems', () => {
 
   it('trả rỗng khi không còn cụm hợp lệ', () => {
     expect(selectDigestItems([c('a')], new Set(['a']), 5)).toEqual([]);
+  });
+});
+
+describe('sentRecently (chốt chặn gửi đúp)', () => {
+  const now = new Date('2026-07-05T12:20:00Z');
+  it('vừa gửi 20 phút trước → chặn (lịch dự phòng phải bỏ qua)', () => {
+    expect(sentRecently('2026-07-05T12:00:00Z', now)).toBe(true);
+  });
+  it('bản gần nhất đã 5 tiếng (bản trưa sau bản sáng) → cho gửi', () => {
+    expect(sentRecently('2026-07-05T07:00:00Z', now)).toBe(false);
+  });
+  it('chưa từng gửi → cho gửi', () => {
+    expect(sentRecently(null, now)).toBe(false);
   });
 });
