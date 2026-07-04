@@ -6,6 +6,7 @@ import { createServiceClient } from '@/lib/db/client';
 import { getFeedItem } from '@/lib/feed/getItem';
 import { sourceLabel } from '@/lib/feed/format';
 import { DetailSummary, VideoSummary } from '@/components/ReaderLazy';
+import { Logo } from '@/components/Logo';
 import { youtubeId } from '@/lib/feed/youtube';
 
 // Trang chi tiết 1 tin — để CHIA SẺ (og:tags cho Facebook/Zalo) + SEO (Google
@@ -28,16 +29,16 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { id } = await params;
   const item = await loadItem(id);
-  if (!item) return { title: 'Không tìm thấy tin — nóng' };
+  if (!item) return { title: 'Không tìm thấy tin — peek' };
   const title = item.titleVi ?? item.title;
   const description =
     item.summary ?? (item.text ? `${item.text.slice(0, 160)}…` : 'Tin công nghệ tóm tắt tiếng Việt.');
   return {
-    title: `${title} — nóng`,
+    title: `${title} — peek`,
     description,
     alternates: { canonical: `/tin/${id}` },
     openGraph: {
-      title, description, url: `/tin/${id}`, siteName: 'nóng', type: 'article',
+      title, description, url: `/tin/${id}`, siteName: 'peek', type: 'article',
       ...(item.imageUrl ? { images: [{ url: item.imageUrl }] } : {}),
     },
     twitter: { card: item.imageUrl ? 'summary_large_image' : 'summary' },
@@ -56,7 +57,7 @@ export default async function TinPage({ params }: { params: Promise<{ id: string
   return (
     <div className="article-page">
       <header className="article-head">
-        <Link href="/" className="logo">nóng<span className="logo-dot" /></Link>
+        <Link href="/" className="logo-link"><Logo /></Link>
         <Link href="/" className="article-home">← Trang chủ</Link>
       </header>
 

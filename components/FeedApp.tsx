@@ -7,6 +7,7 @@ import { HeroCard } from './HeroCard';
 import { Sidebar } from './Sidebar';
 import { Trending } from './Trending';
 import { ReaderPanel } from './ReaderPanel';
+import { Logo } from './Logo';
 import { CATEGORIES, matchCategory } from '../lib/feed/category';
 
 const BATCH = 20; // số tin xin thêm mỗi lần cuộn tới đáy
@@ -123,7 +124,7 @@ export function FeedApp({
   return (
     <>
       <header className="app-header">
-        <span className="logo">nóng<span className="logo-dot" /></span>
+        <Logo />
         <label className="search">
           <span>🔍</span>
           <input

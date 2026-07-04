@@ -29,13 +29,13 @@ export function formatDigest(opts: {
   host: string; // vd "https://technews-rho-three.vercel.app"
   items: DigestItem[];
 }): string {
-  const lines: string[] = [`🔥 <b>nóng — Bản tin công nghệ · ${escapeHtml(opts.date)}</b>`, ''];
+  const lines: string[] = [`🔥 <b>peek — Bản tin công nghệ · ${escapeHtml(opts.date)}</b>`, ''];
   opts.items.forEach((it, i) => {
     const title = escapeHtml(it.titleVi.trim());
     lines.push(`${i + 1}. <a href="${escapeHtml(it.url)}"><b>${title}</b></a>`);
     if (it.summary.trim()) lines.push(escapeHtml(clampSummary(it.summary)));
     lines.push('');
   });
-  lines.push(`👉 Xem thêm tại nóng: ${escapeHtml(opts.host)}`);
+  lines.push(`👉 Liếc thêm tại peek: ${escapeHtml(opts.host)}`);
   return lines.join('\n');
 }

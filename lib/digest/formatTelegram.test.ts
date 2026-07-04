@@ -15,11 +15,11 @@ describe('formatDigest', () => {
 
   it('có tiêu đề ngày, đánh số, link bọc tiêu đề, và dòng chân', () => {
     const out = formatDigest({ date: '03/07', host: 'https://x.com', items });
-    expect(out).toContain('nóng — Bản tin công nghệ · 03/07');
+    expect(out).toContain('peek — Bản tin công nghệ · 03/07');
     expect(out).toContain('1. <a href="https://x.com/tin/a"><b>Apple ra mắt M5</b></a>');
     expect(out).toContain('2. <a href="https://x.com/tin/b"><b>Google &amp; EU</b></a>');
     expect(out).toContain('Chip mới nhanh hơn 20%.');
-    expect(out).toContain('👉 Xem thêm tại nóng: https://x.com');
+    expect(out).toContain('👉 Liếc thêm tại peek: https://x.com');
   });
 
   it('escape ký tự đặc biệt trong tiêu đề để không vỡ HTML', () => {
