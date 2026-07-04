@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Bong bóng peek: 3 góc tròn lớn, góc trái-dưới nhọn (motif bo góc của UI) -->
-  <path d="M20 2h24a18 18 0 0 1 18 18v24a18 18 0 0 1-18 18H8a6 6 0 0 1-6-6V20A18 18 0 0 1 20 2Z" fill="#E8FF3A"/>
-  <!-- 2 mắt liếc (nửa viên thuốc úp) -->
-  <path d="M16 37a6.5 6.5 0 0 1 13 0z" fill="#0B0B0F"/>
-  <path d="M35 37a6.5 6.5 0 0 1 13 0z" fill="#0B0B0F"/>
+  <!-- Bong bóng peek (nhận diện 4/7): góc trên đều 18, phải-dưới to 25, trái-dưới nhọn 1 -->
+  <path d="M18 0h28a18 18 0 0 1 18 18v21a25 25 0 0 1-25 25H1a1 1 0 0 1-1-1V18A18 18 0 0 1 18 0Z" fill="#E8FF3A"/>
+  <!-- 2 mắt liếc: nửa viên thuốc úp, lệch phải + cao hơn tâm -->
+  <path d="M21 31.3a6.2 6.2 0 0 1 12.4 0z" fill="#0B0B0F"/>
+  <path d="M37.5 31.3a6.2 6.2 0 0 1 12.4 0z" fill="#0B0B0F"/>
 </svg>
