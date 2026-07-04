@@ -105,9 +105,25 @@ export function FeedApp({
     return list;
   }, [items, recentItems, mode, source, category, query]);
 
+  // Thẻ tag ĐỘNG: chỉ hiện chủ đề đang thực sự có ≥2 bài trong feed (bấm vào
+  // chắc chắn có tin để đọc), xếp theo số bài giảm dần — chủ đề nào đang nhiều
+  // tin nóng nhất đứng trước. Thẻ đang chọn luôn được giữ lại để còn bỏ chọn.
+  const chips = useMemo(() => {
+    const list = mode === 'recent' ? recentItems : items;
+    const counted = CATEGORIES
+      .filter((c) => c !== 'Tất cả')
+      .map((c) => ({ name: c, count: list.filter((it) => matchCategory(it.titleVi ?? it.title, c)).length }))
+      .filter((c) => c.count >= 2 || c.name === category)
+      .sort((a, b) => b.count - a.count);
+    return [{ name: 'Tất cả', count: null as number | null }, ...counted];
+  }, [items, recentItems, mode, category]);
+
   const showHero = source === 'all' && category === 'Tất cả' && !query.trim() && nav === 'Trang chủ';
-  const hero = showHero ? filtered[0] : undefined;
-  const cards = showHero ? filtered.slice(1) : filtered;
+  // Hero "Nóng nhất" phải là CỤM GỘP (≥2 nguồn xác nhận chéo) — tin lẻ dù mới
+  // đến đâu cũng không được chiếm vị trí này. Feed đã xếp theo độ nóng nên cụm
+  // gộp đầu tiên chính là cụm gộp nóng nhất; không có cụm nào → không hiện hero.
+  const hero = showHero ? filtered.find((it) => it.nSources >= 2) : undefined;
+  const cards = hero ? filtered.filter((it) => it.clusterId !== hero.clusterId) : filtered;
 
   return (
     <>
@@ -173,13 +189,14 @@ export function FeedApp({
 
         <main className="feed">
           <div className="chips">
-            {CATEGORIES.map((c) => (
+            {chips.map((c) => (
               <span
-                key={c}
-                className={`chip-cat${category === c ? ' active' : ''}`}
-                onClick={() => setCategory(c)}
+                key={c.name}
+                className={`chip-cat${category === c.name ? ' active' : ''}`}
+                onClick={() => setCategory(c.name)}
               >
-                {c}
+                {c.name}
+                {c.count !== null && <span className="chip-count">{c.count}</span>}
               </span>
             ))}
           </div>
@@ -194,7 +211,7 @@ export function FeedApp({
 
           {/* Trên mobile (cột phải bị ẩn): chỉ "Tin nóng" (bỏ "Tin hôm nay" cho gọn) */}
           <div className="rail-mobile">
-            <Trending items={items} now={now} onOpen={(it) => setReader(it)} showRecent={false} />
+            <Trending items={items} now={now} onOpen={(it) => setReader(it)} showRecent={false} excludeId={hero?.clusterId} />
           </div>
 
           {cards.map((item) => (
@@ -217,7 +234,7 @@ export function FeedApp({
           )}
         </main>
 
-        <Trending items={items} now={now} onOpen={(it) => setReader(it)} />
+        <Trending items={items} now={now} onOpen={(it) => setReader(it)} excludeId={hero?.clusterId} />
       </div>
 
       {reader && <ReaderPanel item={reader} now={now} onClose={() => setReader(null)} />}

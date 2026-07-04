@@ -184,6 +184,9 @@ a { color: inherit; text-decoration: none; }
 }
 .chip-cat:hover { color: var(--text); border-color: var(--text-faint); }
 .chip-cat.active { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+/* Số bài đang có của chủ đề — báo trước "bấm vào có tin để đọc" */
+.chip-count { margin-left: 6px; font-size: 11px; opacity: 0.55; }
+.chip-cat.active .chip-count { opacity: 0.75; }
 .feed-sentinel { height: 1px; }
 .feed-more {
   text-align: center; color: var(--text-faint); font-size: 14px;
@@ -598,6 +601,8 @@ a { color: inherit; text-decoration: none; }
      nội dung tối thiểu của ô tìm kiếm → header tràn lề phải (lộ ra khi thêm
      tagline vào logo, logo chiếm nhiều chỗ hơn). */
   .app-header { grid-template-columns: auto minmax(0, 1fr) auto; padding: 0 18px; }
+  /* Mobile bỏ ô tìm kiếm — header chỉ còn logo + menu cho thoáng */
+  .search { display: none; }
   /* Cột trái ẩn → gộp nav vào 1 menu góc phải */
   .menu-wrap { display: block; }
 }
@@ -608,8 +613,6 @@ a { color: inherit; text-decoration: none; }
   .logo { gap: 7px; }
   .logo-word { font-size: 20px; }
   .logo-bubble { width: 26px; height: 26px; border-radius: 8px 8px 8px 3px; }
-  .search { padding: 9px 13px; font-size: 13.5px; }
-  .search input { font-size: 13.5px; }
   .icon-btn { width: 36px; height: 36px; }
 
   .layout { padding: 12px 12px 72px; }

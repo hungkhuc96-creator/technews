@@ -19,15 +19,19 @@ function Row({ item, now, onOpen }: { item: FeedItem; now?: Date; onOpen?: (i: F
 }
 
 export function Trending({
-  items, now, onOpen, showRecent = true,
+  items, now, onOpen, showRecent = true, excludeId,
 }: {
   items: FeedItem[];
   now?: Date;
   onOpen?: (item: FeedItem) => void;
   showRecent?: boolean; // mobile tắt "Tin hôm nay" cho gọn
+  excludeId?: string;   // tin đã lên hero "Nóng nhất" — bỏ khỏi box Tin nóng, tránh lặp
 }) {
   // Tin nóng = nóng nhất theo heat; Tin hôm nay = mới nhất theo thời gian.
-  const hottest = [...items].sort((a, b) => b.heat - a.heat).slice(0, 5);
+  const hottest = items
+    .filter((it) => it.clusterId !== excludeId)
+    .sort((a, b) => b.heat - a.heat)
+    .slice(0, 5);
   const recent = [...items]
     .sort(
       (a, b) =>
