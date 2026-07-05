@@ -119,6 +119,55 @@ describe('runClustering — chốt chặn AI (sameEvent)', () => {
     expect(asked).toBeGreaterThanOrEqual(1); // AI có được hỏi
     expect(byId.x1).not.toBe(byId.x2);       // và quyết định tách 2 cụm riêng
   }, 60000);
+
+});
+
+describe('runClustering — AI hết credit (sameEvent ném lỗi)', () => {
+  beforeAll(async () => {
+    const { data: old } = await client
+      .from('posts').select('cluster_id').like('url', 'https://throw.example/%');
+    const oldIds = [...new Set((old ?? []).map((p) => p.cluster_id).filter(Boolean))];
+    await client.from('posts').delete().like('url', 'https://throw.example/%');
+    if (oldIds.length) await client.from('clusters').delete().in('id', oldIds);
+    await client.from('sources').delete().like('name', 'GT-%');
+    // 2 tin vùng xám (cosine ~0.9) → AI sẽ được hỏi (rồi ném lỗi).
+    await upsertPosts(client, [
+      { sourceType: 'press', sourceName: 'GT-A', externalId: 't1', title: 'Meta ships Llama 5',
+        text: 'llama', url: 'https://throw.example/t1', author: null,
+        publishedAt: '2026-06-24T00:00:00.000Z', lang: null, metrics: {} },
+      { sourceType: 'press', sourceName: 'GT-B', externalId: 't2', title: 'Llama 5 sales collapse',
+        text: 'llama', url: 'https://throw.example/t2', author: null,
+        publishedAt: '2026-06-24T01:00:00.000Z', lang: null, metrics: {} },
+    ]);
+  });
+
+  afterAll(async () => {
+    const { data } = await client
+      .from('posts').select('cluster_id').like('url', 'https://throw.example/%');
+    const ids = [...new Set((data ?? []).map((p) => p.cluster_id).filter(Boolean))];
+    await client.from('posts').delete().like('url', 'https://throw.example/%');
+    if (ids.length) await client.from('clusters').delete().in('id', ids);
+    await client.from('sources').delete().like('name', 'GT-%');
+  });
+
+  it('AI NÉM LỖI (hết credit) → gom cụm KHÔNG sập, hỏi AI tối đa 1 lần', async () => {
+    // Case thật 5/7: Anthropic hết credit, sameEvent ném BadRequestError giữa
+    // lượt → trước đây sập process:press → feed đứng. Nay phải: chạy xong, và
+    // ngừng hỏi AI sau lần lỗi đầu (không gọi lỗi hàng loạt).
+    const fakeEmbedGray = async (text: string) =>
+      text.includes('ships') ? [1, 0, 0] : [0.9, Math.sqrt(1 - 0.81), 0];
+    let asked = 0;
+    const sameEvent = async () => {
+      asked++;
+      throw new Error('400 credit balance is too low');
+    };
+    await expect(
+      runClustering(client, { embed: fakeEmbedGray, sameEvent }, {
+        urlPrefix: 'https://throw.example/',
+      }),
+    ).resolves.toBeDefined(); // KHÔNG ném — gom cụm hoàn tất
+    expect(asked).toBe(1);    // hỏi 1 lần, lỗi → tắt AI, không hỏi lại
+  }, 60000);
 });
 
 describe('runClustering — auto-merge trên vùng chắc chắn', () => {

@@ -90,6 +90,11 @@ export async function runClustering(
     return t;
   };
 
+  // AI (sameEvent) có thể chết giữa chừng (hết credit Anthropic...). Khi đó KHÔNG
+  // được làm sập gom cụm — tắt AI cho cả lượt, rơi về chế độ thận trọng (chỉ gộp
+  // khi trùng thực thể) để feed vẫn có cụm mới (tiêu đề tạm tiếng Anh).
+  let aiDown = false;
+
   for (const p of posts ?? []) {
     processed++;
 
@@ -118,10 +123,20 @@ export async function runClustering(
     if (match) {
       const sure = match.score >= AUTO_MERGE && match.overlap;
       if (!sure) {
-        if (deps.sameEvent) {
+        if (deps.sameEvent && !aiDown) {
           const cand = mem.find((c) => c.id === match!.clusterId)!;
           const t = await repTitle(cand);
-          if (!t || !(await deps.sameEvent(p.title, t))) match = null;
+          try {
+            if (!t || !(await deps.sameEvent(p.title, t))) match = null;
+          } catch (e) {
+            // AI lỗi (hết credit/mạng) → tắt AI cả lượt, rơi về gom cụm thận
+            // trọng NGAY bài này. Không ném lỗi → gom cụm không sập.
+            aiDown = true;
+            console.warn(
+              `[cluster] sameEvent lỗi → chuyển gom cụm không-AI: ${(e as Error).message?.slice(0, 120)}`,
+            );
+            if (!match.overlap) match = null;
+          }
         } else if (!match.overlap) {
           match = null;
         }
