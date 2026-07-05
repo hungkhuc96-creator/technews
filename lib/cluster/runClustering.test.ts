@@ -150,10 +150,12 @@ describe('runClustering — AI hết credit (sameEvent ném lỗi)', () => {
     await client.from('sources').delete().like('name', 'GT-%');
   });
 
-  it('AI NÉM LỖI (hết credit) → gom cụm KHÔNG sập, hỏi AI tối đa 1 lần', async () => {
+  it('AI NÉM LỖI (hết credit) → không sập, hỏi 1 lần, và vùng xám KHÔNG gộp', async () => {
     // Case thật 5/7: Anthropic hết credit, sameEvent ném BadRequestError giữa
-    // lượt → trước đây sập process:press → feed đứng. Nay phải: chạy xong, và
-    // ngừng hỏi AI sau lần lỗi đầu (không gọi lỗi hàng loạt).
+    // lượt → trước đây sập process:press → feed đứng. Nay phải: chạy xong,
+    // ngừng hỏi AI sau lần lỗi đầu, và TUYỆT ĐỐI không gộp vùng xám khi thiếu
+    // AI phân xử — đã xảy ra thật: bài "chôn iPhone vào viên nang thời gian"
+    // bị gộp vào cụm chip A20 chỉ vì cùng dính thực thể Apple/iPhone.
     const fakeEmbedGray = async (text: string) =>
       text.includes('ships') ? [1, 0, 0] : [0.9, Math.sqrt(1 - 0.81), 0];
     let asked = 0;
@@ -167,6 +169,10 @@ describe('runClustering — AI hết credit (sameEvent ném lỗi)', () => {
       }),
     ).resolves.toBeDefined(); // KHÔNG ném — gom cụm hoàn tất
     expect(asked).toBe(1);    // hỏi 1 lần, lỗi → tắt AI, không hỏi lại
+    const { data: posts } = await client
+      .from('posts').select('external_id, cluster_id').like('url', 'https://throw.example/%');
+    const byId = Object.fromEntries(posts!.map((p) => [p.external_id, p.cluster_id]));
+    expect(byId.t1).not.toBe(byId.t2); // vùng xám + AI chết → tách cụm riêng
   }, 60000);
 });
 

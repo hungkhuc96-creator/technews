@@ -119,23 +119,28 @@ export async function runClustering(
     // 3) QUYẾT ĐỊNH GỘP:
     //  - Rất giống (≥0.93) VÀ trùng thực thể → chắc chắn, gộp thẳng (khỏi hỏi AI).
     //  - Còn lại (vùng xám, hoặc rất giống nhưng khác thực thể) → để AI phân xử.
-    //  - Không có AI → thận trọng: chỉ gộp khi có trùng thực thể (như cũ).
+    //  - AI CHẾT GIỮA LƯỢT (hết credit/mạng) → vùng xám KHÔNG gộp. Trùng thực
+    //    thể không đủ tin: "chôn iPhone vào viên nang thời gian" từng bị gộp
+    //    vào cụm chip A20 chỉ vì cùng dính Apple/iPhone (case thật 5/7). Gộp
+    //    nhầm (tin sai) tệ hơn nhiều so với tách nhầm (trùng tin).
+    //  - Không cấu hình AI từ đầu → thận trọng: chỉ gộp khi trùng thực thể (như cũ).
     if (match) {
       const sure = match.score >= AUTO_MERGE && match.overlap;
       if (!sure) {
-        if (deps.sameEvent && !aiDown) {
+        if (aiDown) {
+          match = null;
+        } else if (deps.sameEvent) {
           const cand = mem.find((c) => c.id === match!.clusterId)!;
           const t = await repTitle(cand);
           try {
             if (!t || !(await deps.sameEvent(p.title, t))) match = null;
           } catch (e) {
-            // AI lỗi (hết credit/mạng) → tắt AI cả lượt, rơi về gom cụm thận
-            // trọng NGAY bài này. Không ném lỗi → gom cụm không sập.
+            // Tắt AI cả lượt ngay lần lỗi đầu. Không ném lỗi → gom cụm không sập.
             aiDown = true;
             console.warn(
-              `[cluster] sameEvent lỗi → chuyển gom cụm không-AI: ${(e as Error).message?.slice(0, 120)}`,
+              `[cluster] sameEvent lỗi → vùng xám ngừng gộp cho tới hết lượt: ${(e as Error).message?.slice(0, 120)}`,
             );
-            if (!match.overlap) match = null;
+            match = null;
           }
         } else if (!match.overlap) {
           match = null;
