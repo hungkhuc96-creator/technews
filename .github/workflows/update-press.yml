@@ -32,10 +32,17 @@ jobs:
           EOF
 
       - run: npm install --no-audit --no-fund
+      # CỐT LÕI (độ tươi của feed) — nếu hỏng thì feed đứng, phải báo lỗi:
       - run: npm run ingest:press      # lấy RSS báo chí
       - run: npm run process:press     # gom cụm + chấm độ nóng
+      # LÀM GIÀU bằng AI — best-effort. Anthropic hết credit KHÔNG được làm sập
+      # cả pipeline: feed vẫn tươi (tiêu đề tạm tiếng Anh), bấm bài vẫn lazy-tóm
+      # tắt khi có credit lại. continue-on-error để lỗi credit không đánh "failure"
+      # toàn run — tránh cảnh "AI hết tiền → tưởng feed chết" (đã xảy ra 4/7).
       - run: npm run titles:press      # dịch tiêu đề (eager) → feed luôn tiếng Việt
+        continue-on-error: true
       - run: npm run summarize         # tóm tắt SẴN top-20 (song song) → bấm là hiện ngay
+        continue-on-error: true
         env:
           SUMMARIZE_LIMIT: 20
 
