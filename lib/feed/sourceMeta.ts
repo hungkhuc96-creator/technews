@@ -7,6 +7,7 @@ export const SOURCE_META: Record<string, SourceMeta> = {
   x: { icon: '𝕏', label: 'X', color: '#6fb7ef', cta: 'Xem tin' },
   reddit: { icon: '👽', label: 'Reddit', color: '#ff8a5b', cta: 'Xem tin' },
   tiktok: { icon: '♪', label: 'TikTok', color: '#ff6f9c', cta: 'Xem tin' },
+  hn: { icon: '🟠', label: 'Hacker News', color: '#ff6600', cta: 'Xem thảo luận' },
 };
 
 export function metaFor(type: string): SourceMeta {

@@ -12,6 +12,7 @@ const SOURCES: { key: string; icon: string; label: string }[] = [
   { key: 'press', icon: '📰', label: 'Báo chí' },
   { key: 'youtube', icon: '▶', label: 'YouTube' },
   { key: 'reddit', icon: '👽', label: 'Reddit' },
+  { key: 'hn', icon: '🟠', label: 'Hacker News' },
   { key: 'x', icon: '𝕏', label: 'X' },
   { key: 'tiktok', icon: '♪', label: 'TikTok' },
 ];

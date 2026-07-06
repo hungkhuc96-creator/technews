@@ -19,7 +19,8 @@
     "summarize": "node --env-file=.env.local --import tsx scripts/summarize.ts",
     "ingest:youtube": "node --env-file=.env.local --import tsx scripts/ingest-youtube.ts",
     "summarize:videos": "node --env-file=.env.local --import tsx scripts/summarize-videos.ts",
-    "ingest:reddit": "node --env-file=.env.local --import tsx scripts/ingest-reddit.ts",
+    "ingest:reddit": "node --env-file=.env.local --import tsx scripts/ingest-reddit-rss.ts",
+    "ingest:hn": "node --env-file=.env.local --import tsx scripts/ingest-hn.ts",
     "ingest:x": "node --env-file=.env.local --import tsx scripts/ingest-x.ts",
     "digest": "node --env-file=.env.local --import tsx scripts/digest.ts"
   },

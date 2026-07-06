@@ -43,6 +43,14 @@ jobs:
         continue-on-error: true        # X lỗi không chặn các bước trên
         run: npm run ingest:x
 
+      - name: Nạp Hacker News (Algolia, miễn phí)
+        continue-on-error: true        # nguồn phụ — lỗi không chặn workflow
+        run: npm run ingest:hn
+
+      - name: Nạp Reddit (RSS công khai)
+        continue-on-error: true        # RSS Reddit có thể chặn IP datacenter — theo dõi lượt đầu
+        run: npm run ingest:reddit
+
       # Chỉ chạy khi bước KHÔNG-continue-on-error hỏng (vd YouTube crash).
       # X/Gemini để continue-on-error nên lỗi lẻ của chúng không kích cảnh báo.
       - name: Báo lỗi qua GitHub Issue

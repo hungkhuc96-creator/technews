@@ -222,6 +222,6 @@ export async function getFeed(
   // caps: mỗi nguồn ĐỨNG RIÊNG tối đa ~20% feed → báo chí luôn là xương sống,
   // X/YouTube... chỉ rắc thêm (X rất tươi nên nếu không chặn sẽ chiếm nửa feed).
   const standaloneCap = Math.max(3, Math.round(limit * 0.2));
-  const caps = { youtube: standaloneCap, reddit: standaloneCap, x: standaloneCap, tiktok: standaloneCap };
+  const caps = { youtube: standaloneCap, reddit: standaloneCap, x: standaloneCap, tiktok: standaloneCap, hn: standaloneCap };
   return rankCandidates(candidates, limit, 3, caps);
 }

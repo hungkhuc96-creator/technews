@@ -53,6 +53,7 @@ const PLATFORM: Record<string, string> = {
   x: favicon('x.com'),
   reddit: favicon('reddit.com'),
   tiktok: favicon('tiktok.com'),
+  hn: favicon('news.ycombinator.com'),
 };
 
 // Logo hiển thị theo LOẠI nguồn:

@@ -56,3 +56,37 @@ export function parseRedditListing(json: string, source: RedditSource): Normaliz
       } satisfies NormalizedPost;
     });
 }
+
+// ==== Đường RSS công khai (không cần key) ====
+// Reddit khoá JSON công khai (403 từ 6/2026) và API tự do phải chờ duyệt.
+// RSS /hot/.rss vẫn mở: có tiêu đề + link + thời gian (KHÔNG có số upvote —
+// feed sẽ xếp các bài này theo độ mới như X). /hot đã được Reddit xếp sẵn theo
+// độ nóng nên bản thân việc bài lọt vào feed đã là tín hiệu chất lượng.
+import Parser from 'rss-parser';
+
+const rssParser = new Parser({
+  customFields: { item: [['media:thumbnail', 'mediaThumbnail']] },
+});
+
+export async function parseRedditFeed(xml: string, source: RedditSource): Promise<NormalizedPost[]> {
+  const feed = await rssParser.parseString(xml);
+  return (feed.items ?? [])
+    .map((item) => {
+      const rawId = (item as { id?: string }).id ?? item.guid ?? item.link ?? '';
+      const thumb = (item as { mediaThumbnail?: { $?: { url?: string } } }).mediaThumbnail?.$?.url;
+      return {
+        sourceType: 'reddit',
+        sourceName: source.name,
+        externalId: rawId.replace(/^t3_/, ''), // khớp id thời OAuth để không trùng bài
+        title: (item.title ?? '').trim(),
+        text: '',
+        url: item.link ?? '',
+        author: ((item as { author?: string }).author ?? item.creator ?? null) as string | null,
+        publishedAt: item.isoDate ?? new Date().toISOString(),
+        lang: 'en',
+        metrics: {}, // RSS không có upvote — xếp theo độ mới
+        imageUrl: thumb && thumb.startsWith('http') ? thumb : null,
+      } satisfies NormalizedPost;
+    })
+    .filter((p) => p.title && p.url);
+}

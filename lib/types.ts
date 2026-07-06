@@ -1,6 +1,6 @@
-export type SourceType = 'press' | 'youtube' | 'reddit' | 'x' | 'tiktok';
+export type SourceType = 'press' | 'youtube' | 'reddit' | 'x' | 'tiktok' | 'hn';
 
-const SOURCE_TYPES: readonly SourceType[] = ['press', 'youtube', 'reddit', 'x', 'tiktok'];
+const SOURCE_TYPES: readonly SourceType[] = ['press', 'youtube', 'reddit', 'x', 'tiktok', 'hn'];
 
 export function isSourceType(value: string): value is SourceType {
   return (SOURCE_TYPES as readonly string[]).includes(value);

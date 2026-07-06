@@ -8,7 +8,7 @@ import { youtubeId } from '../lib/feed/youtube';
 import { TweetEmbed } from './TweetEmbed';
 
 const TYPE_LABEL: Record<string, string> = {
-  press: '📰 Bài báo', youtube: '▶ Video', x: '𝕏 Bài đăng', reddit: '👽 Reddit', tiktok: '♪ TikTok',
+  press: '📰 Bài báo', youtube: '▶ Video', x: '𝕏 Bài đăng', reddit: '👽 Reddit', tiktok: '♪ TikTok', hn: '🟠 Hacker News',
 };
 
 // Panel chi tiết trượt từ phải khi bấm một thẻ — bám sát thiết kế gốc.
