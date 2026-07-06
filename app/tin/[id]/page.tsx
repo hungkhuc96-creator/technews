@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { createServiceClient } from '@/lib/db/client';
 import { getFeedItem } from '@/lib/feed/getItem';
 import { sourceLabel } from '@/lib/feed/format';
-import { DetailSummary, VideoSummary } from '@/components/ReaderLazy';
+import { DetailSummary, DiscussionSummary, VideoSummary } from '@/components/ReaderLazy';
 import { Logo } from '@/components/Logo';
 import { youtubeId } from '@/lib/feed/youtube';
 import { articleJsonLd } from '@/lib/seo/jsonld';
@@ -109,6 +109,9 @@ export default async function TinPage({ params }: { params: Promise<{ id: string
 
         {/* Tóm tắt chi tiết (báo chí): bấm mới tạo, cache ở server */}
         {type === 'press' && <DetailSummary clusterId={item.clusterId} />}
+
+        {/* HN/Reddit: AI đọc bình luận cộng đồng và tóm tắt (tự tải, cache server) */}
+        {(type === 'hn' || type === 'reddit') && <DiscussionSummary postId={item.clusterId} />}
 
         {type === 'press' && item.text && (
           <div className="reader-orig">

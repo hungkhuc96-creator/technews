@@ -6,6 +6,7 @@ import { relativeTime, sourceLabel, compactNumber } from '../lib/feed/format';
 import { hashColor } from '../lib/feed/color';
 import { youtubeId } from '../lib/feed/youtube';
 import { TweetEmbed } from './TweetEmbed';
+import { DiscussionSummary } from './ReaderLazy';
 
 const TYPE_LABEL: Record<string, string> = {
   press: '📰 Bài báo', youtube: '▶ Video', x: '𝕏 Bài đăng', reddit: '👽 Reddit', tiktok: '♪ TikTok', hn: '🟠 Hacker News',
@@ -270,6 +271,11 @@ export function ReaderPanel({ item, now, onClose }: { item: FeedItem; now?: Date
                 <p className="reader-orig-para">{item.text}</p>
                 <div className="reader-orig-note">Trích từ nguồn gốc. Đọc bài đầy đủ qua nút “Mở bài gốc ↗” bên dưới.</div>
               </div>
+            )}
+
+            {/* HN/Reddit: giá trị nằm ở THẢO LUẬN — AI đọc bình luận và tóm tắt */}
+            {(type === 'hn' || type === 'reddit') && (
+              <DiscussionSummary postId={item.clusterId} />
             )}
 
             <div className="reader-srcs-title">NGUỒN ĐƯA TIN · {sourceLabel(item.nSources)}</div>
