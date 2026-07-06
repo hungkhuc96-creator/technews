@@ -8,7 +8,7 @@ import { Sidebar } from './Sidebar';
 import { Trending } from './Trending';
 import { ReaderPanel } from './ReaderPanel';
 import { Logo } from './Logo';
-import { CATEGORIES, matchCategory } from '../lib/feed/category';
+import { matchCategory } from '../lib/feed/category';
 
 const BATCH = 20; // số tin xin thêm mỗi lần cuộn tới đáy
 
@@ -105,19 +105,6 @@ export function FeedApp({
     return list;
   }, [items, recentItems, mode, source, category, query]);
 
-  // Thẻ tag ĐỘNG: chỉ hiện chủ đề đang thực sự có ≥2 bài trong feed (bấm vào
-  // chắc chắn có tin để đọc), xếp theo số bài giảm dần — chủ đề nào đang nhiều
-  // tin nóng nhất đứng trước. Thẻ đang chọn luôn được giữ lại để còn bỏ chọn.
-  const chips = useMemo(() => {
-    const list = mode === 'recent' ? recentItems : items;
-    const counted = CATEGORIES
-      .filter((c) => c !== 'Tất cả')
-      .map((c) => ({ name: c, count: list.filter((it) => matchCategory(it.titleVi ?? it.title, c)).length }))
-      .filter((c) => c.count >= 2 || c.name === category)
-      .sort((a, b) => b.count - a.count);
-    return [{ name: 'Tất cả', count: null as number | null }, ...counted];
-  }, [items, recentItems, mode, category]);
-
   const showHero = source === 'all' && category === 'Tất cả' && !query.trim() && nav === 'Trang chủ';
   // Hero "Nóng nhất" phải là CỤM GỘP (≥2 nguồn xác nhận chéo) — tin lẻ dù mới
   // đến đâu cũng không được chiếm vị trí này. Feed đã xếp theo độ nóng nên cụm
@@ -188,18 +175,8 @@ export function FeedApp({
         />
 
         <main className="feed">
-          <div className="chips">
-            {chips.map((c) => (
-              <span
-                key={c.name}
-                className={`chip-cat${category === c.name ? ' active' : ''}`}
-                onClick={() => setCategory(c.name)}
-              >
-                {c.name}
-                {c.count !== null && <span className="chip-count">{c.count}</span>}
-              </span>
-            ))}
-          </div>
+          {/* Thẻ tag chủ đề TẠM ẨN (giai đoạn sau phát triển tiếp) — bộ lọc
+              category phía dưới vẫn giữ nguyên, khôi phục UI từ git history. */}
 
           {filtered.length === 0 && (
             <p style={{ color: 'var(--text-faint)', padding: '40px 0', textAlign: 'center' }}>
