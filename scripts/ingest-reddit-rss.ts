@@ -13,7 +13,11 @@ async function main() {
       'nguyên thuật ngữ/tên riêng. CHỈ trả về bản dịch:\n\n' + text,
     );
 
-  const result = await ingestRedditRss(REDDIT_SOURCES, {
+  // XÁO thứ tự sub mỗi lượt: Reddit hay 429 giữa chừng (nhất là từ IP GitHub
+  // dùng chung) — xáo để các sub thay phiên được đứng đầu hàng, qua vài lượt
+  // cron 4h là sub nào cũng có phần (bài trùng đã có upsert chống).
+  const shuffled = [...REDDIT_SOURCES].sort(() => Math.random() - 0.5);
+  const result = await ingestRedditRss(shuffled, {
     upsert: (posts) => upsertPosts(client, posts),
     translate,
   });

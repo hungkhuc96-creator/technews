@@ -21,7 +21,7 @@ export async function ingestRedditRss(
   let fetched = 0;
   let inserted = 0;
   const failedSources: string[] = [];
-  const delayMs = deps.delayMs ?? 12_000;
+  const delayMs = deps.delayMs ?? 15_000;
 
   for (const [i, source] of sources.entries()) {
     try {
