@@ -83,7 +83,11 @@ export async function getFeed(
     offset === 0 && sort === 'heat'
       ? client.from('posts')
           .select('id, source_type, title, text, url, published_at, image_url, metrics, author, video_summary_vi, sources(name)')
-          .neq('source_type', 'press').gte('published_at', since)
+          // HN + Reddit TẠM ẨN khỏi trang chính (giai đoạn sau phát triển tiếp) —
+          // ingest vẫn chạy ngầm tích dữ liệu, trang /tin/[id] + tóm tắt thảo luận
+          // vẫn hoạt động qua link trực tiếp. Mở lại: thêm 'hn', 'reddit' vào đây.
+          .in('source_type', ['x', 'youtube', 'tiktok'])
+          .gte('published_at', since)
           .order('published_at', { ascending: false }).limit(200)
       : Promise.resolve(empty),
   ]);
