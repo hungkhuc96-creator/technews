@@ -58,6 +58,18 @@ describe('isNoise', () => {
     expect(isNoise('Salesforce launches new AI agent')).toBe(false);
   });
 
+  it('chặn listicle mua sắm phụ kiện (case thật 7/7: Gizmochina gắn nhãn "News" nên lọt lưới nhãn)', () => {
+    expect(isNoise('The first 5 things to buy if you just got a Xiaomi 17T or 17T Pro')).toBe(true);
+    expect(isNoise('10 accessories to buy for your new MacBook Pro')).toBe(true);
+    expect(isNoise('The best gadgets to buy this summer')).toBe(true);
+  });
+
+  it('KHÔNG chặn tin thương vụ / tin thật có "to buy"', () => {
+    expect(isNoise('Google to buy cybersecurity firm Wiz for $32 billion')).toBe(false);
+    expect(isNoise('OpenAI in talks to buy AI chip startup')).toBe(false);
+    expect(isNoise('Anthropic users are more likely to buy annual plans, report says')).toBe(false);
+  });
+
   it('chặn theo NHÃN CHUYÊN MỤC RSS (case thật 4/7: Wired lẫn tin ngoài công nghệ)', () => {
     expect(isNoise('Food Preservatives May Increase the Risk of High Blood Pressure', ['Science / Health'])).toBe(true);
     expect(isNoise('Scientists Have Identified a New Fossil Species of Axolotl in Mexico', ['Science'])).toBe(true);

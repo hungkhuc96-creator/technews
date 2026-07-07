@@ -15,6 +15,12 @@ describe('buildPrompt', () => {
     expect(p).toContain('summary');
     expect(p).not.toContain('bullets'); // UI không hiển thị bullets nữa
   });
+
+  it('yêu cầu title bám TIÊU ĐỀ gốc, cấm suy sự kiện từ đoạn trích (case Xiaomi 17T)', () => {
+    const p = buildPrompt(articles);
+    expect(p).toContain('TIÊU ĐỀ gốc');
+    expect(p).toContain('KHÔNG tự suy ra sự kiện');
+  });
 });
 
 describe('parseSummary', () => {

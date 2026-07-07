@@ -28,6 +28,10 @@ const DEAL_PATTERNS: RegExp[] = [
   /drops? to (a )?new low/i,   // "...drops to a new low of $229.99"
   /hits? a fresh low/i,        // "...just hit a fresh low at Amazon"
   /\bdeal:/i,                  // "Samsung flagship deal: ..."
+  // Listicle mua sắm phụ kiện ("The first 5 things to buy if you just got a
+  // Xiaomi 17T") — không phải tin. Giới hạn danh từ đứng trước "to buy" để
+  // không chặn tin thương vụ ("Google to buy Wiz").
+  /\b(things?|accessor(?:y|ies)|gadgets?|gear|items?) to buy\b/i,
 ];
 
 // Đố vui / game hằng ngày (Wordle, NYT Connections...) — không phải tin công nghệ.
