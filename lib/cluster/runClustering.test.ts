@@ -6,15 +6,25 @@ import type { NormalizedPost } from '../types';
 
 const client = createServiceClient();
 
-// Embed giả: 3 chiều, gần như vuông góc theo chủ đề → xác định.
+// LƯU Ý: kiến trúc mới khớp cụm bằng pgvector (RPC match_cluster) nên embedding
+// PHẢI đúng 384 chiều và DB test PHẢI có migration 0010 + 0011 (cột vector + trigger
+// + RPC). pad384 nhồi vector ngắn thành 384 chiều bằng 0 — giữ nguyên quan hệ cosine.
+const EMBED_DIM = 384;
+const pad384 = (v: number[]): number[] => {
+  const a = new Array(EMBED_DIM).fill(0);
+  v.forEach((x, i) => (a[i] = x));
+  return a;
+};
+
+// Embed giả: gần như vuông góc theo chủ đề → xác định.
 const VEC: Record<string, number[]> = {
-  gpt: [1, 0, 0],
-  iphone: [0, 1, 0],
+  gpt: pad384([1, 0, 0]),
+  iphone: pad384([0, 1, 0]),
 };
 const fakeEmbed = async (text: string): Promise<number[]> => {
   if (text.toLowerCase().includes('gpt')) return VEC.gpt;
   if (text.toLowerCase().includes('iphone')) return VEC.iphone;
-  return [0, 0, 1];
+  return pad384([0, 0, 1]);
 };
 
 function post(source: string, externalId: string, title: string): NormalizedPost {
@@ -107,7 +117,7 @@ describe('runClustering — chốt chặn AI (sameEvent)', () => {
   it('vùng xám (cosine ~0.9) + AI nói "khác sự kiện" → KHÔNG gộp', async () => {
     // 2 vector cosine = 0.9 — nằm trong vùng xám 0.82–0.93 nên AI được hỏi.
     const fakeEmbedGray = async (text: string) =>
-      text.includes('ships') ? [1, 0, 0] : [0.9, Math.sqrt(1 - 0.81), 0];
+      text.includes('ships') ? pad384([1, 0, 0]) : pad384([0.9, Math.sqrt(1 - 0.81), 0]);
     let asked = 0;
     const sameEvent = async () => { asked++; return false; }; // AI luôn từ chối gộp
     await runClustering(client, { embed: fakeEmbedGray, sameEvent }, {
@@ -157,7 +167,7 @@ describe('runClustering — AI hết credit (sameEvent ném lỗi)', () => {
     // AI phân xử — đã xảy ra thật: bài "chôn iPhone vào viên nang thời gian"
     // bị gộp vào cụm chip A20 chỉ vì cùng dính thực thể Apple/iPhone.
     const fakeEmbedGray = async (text: string) =>
-      text.includes('ships') ? [1, 0, 0] : [0.9, Math.sqrt(1 - 0.81), 0];
+      text.includes('ships') ? pad384([1, 0, 0]) : pad384([0.9, Math.sqrt(1 - 0.81), 0]);
     let asked = 0;
     const sameEvent = async () => {
       asked++;
@@ -204,7 +214,7 @@ describe('runClustering — auto-merge trên vùng chắc chắn', () => {
   });
 
   it('cosine ≥ 0.93 → gộp thẳng KHÔNG hỏi AI (tiết kiệm lượt gọi)', async () => {
-    const fakeEmbedSame = async () => [1, 0, 0]; // giống hệt (cosine 1.0)
+    const fakeEmbedSame = async () => pad384([1, 0, 0]); // giống hệt (cosine 1.0)
     let asked = 0;
     const sameEvent = async () => { asked++; return false; }; // dù AI nói không...
     await runClustering(client, { embed: fakeEmbedSame, sameEvent }, {
