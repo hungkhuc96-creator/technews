@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { extractEntities } from '../enrich/entities';
 import { bestCluster, type ClusterCandidate } from './decide';
+import { versionConflict } from './versionConflict';
 
 export interface ClusterDeps {
   embed: (text: string) => Promise<number[]>;
@@ -115,6 +116,16 @@ export async function runClustering(
       .map((c) => ({ id: c.id, centroid: c.centroid, entities: c.entities }));
 
     let match = bestCluster(embedding, entities, candidates, JOIN_THRESHOLD);
+
+    // 2b) CHỐT PHIÊN BẢN (luật cứng, trước cả sure-path lẫn AI): bài mới và cụm ứng
+    //     viên nói về OS CÙNG sản phẩm nhưng KHÁC số hiệu (macOS 26.6 vs macOS 27) →
+    //     khác sự kiện, cấm gộp. Embedding 2 bản beta OS giống nhau ~0.90 và AI hay
+    //     nhầm "cùng sự kiện" (case thật 14/7: Tahoe 26.6 gộp nhầm Golden Gate 27).
+    if (match) {
+      const cand = mem.find((c) => c.id === match!.clusterId)!;
+      const t = await repTitle(cand);
+      if (t && versionConflict(p.title, t)) match = null;
+    }
 
     // 3) QUYẾT ĐỊNH GỘP:
     //  - Rất giống (≥0.93) VÀ trùng thực thể → chắc chắn, gộp thẳng (khỏi hỏi AI).

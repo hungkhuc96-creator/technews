@@ -9,6 +9,7 @@ export function makeSameEvent(chat: ChatFn): (a: string, b: string) => Promise<b
 
 "yes" = hai tiêu đề tường thuật CÙNG MỘT sự kiện/thông tin cụ thể (cùng một lần ra mắt, cùng một báo cáo, cùng một sự việc) — kiểu các báo khác nhau cùng đưa một tin.
 "no" = KHÁC sự kiện, dù cùng hãng hay cùng chủ đề. Ví dụ phải trả lời "no": "ra mắt sản phẩm" với "doanh số sụt giảm"; hai bài đố vui/số báo khác ngày; hai sản phẩm khác nhau của cùng hãng; tin của hãng A với tin của hãng B.
+QUAN TRỌNG: SỐ HIỆU hoặc TÊN MÃ phiên bản KHÁC NHAU = KHÁC sự kiện, phải trả lời "no". Ví dụ "no": "macOS 26.6 beta" với "macOS 27 public beta"; "macOS Tahoe" với "macOS Golden Gate"; "iOS 26" với "iOS 27"; "iPhone 17" với "iPhone 18". Chỉ "yes" khi CÙNG số hiệu/tên mã.
 
 A: "${a}"
 B: "${b}"
