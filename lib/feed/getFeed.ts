@@ -69,7 +69,7 @@ export async function getFeed(
     { data: posts }, { data: summaries }, { data: clusterImages }, { data: clusterPosts }, { data: standalone },
   ] = await Promise.all([
     repIds.length
-      ? client.from('posts').select('id, title, text, url, published_at, image_url, sources(name)').in('id', repIds)
+      ? client.from('posts').select('id, title, text_preview, url, published_at, image_url, sources(name)').in('id', repIds)
       : Promise.resolve(empty),
     clusterIds.length
       ? client.from('cluster_summaries').select('cluster_id, title_vi, summary_vi, bullets_vi').in('cluster_id', clusterIds)
@@ -82,7 +82,7 @@ export async function getFeed(
       : Promise.resolve(empty),
     offset === 0 && sort === 'heat'
       ? client.from('posts')
-          .select('id, source_type, title, text, url, published_at, image_url, metrics, author, video_summary_vi, sources(name)')
+          .select('id, source_type, title, text_preview, url, published_at, image_url, metrics, author, video_summary_vi, sources(name)')
           // HN + Reddit TẠM ẨN khỏi trang chính (giai đoạn sau phát triển tiếp) —
           // ingest vẫn chạy ngầm tích dữ liệu, trang /tin/[id] + tóm tắt thảo luận
           // vẫn hoạt động qua link trực tiếp. Mở lại: thêm 'hn', 'reddit' vào đây.
@@ -150,7 +150,7 @@ export async function getFeed(
         })(),
         authorName: null as string | null,
         metrics: {},
-        text: p.text ?? null,
+        text: p.text_preview ?? null,
         sourceTypes: c.source_types ?? [],
         heat: c.heat_score,
         titleVi: sum?.title_vi ?? null,
@@ -200,7 +200,7 @@ export async function getFeed(
       sources: sName ? [{ ...avatarFor(sName), logo: sourceAvatar(sName, p.source_type) }] : [],
       authorName: p.author ?? null,
       metrics: (p.metrics ?? {}) as PostMetrics,
-      text: p.text ?? null,
+      text: p.text_preview ?? null,
       sourceTypes: [p.source_type],
       heat: rawHeat,
       titleVi: null,
