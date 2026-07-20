@@ -22,6 +22,7 @@
     "ingest:reddit": "node --env-file=.env.local --import tsx scripts/ingest-reddit-rss.ts",
     "ingest:hn": "node --env-file=.env.local --import tsx scripts/ingest-hn.ts",
     "ingest:x": "node --env-file=.env.local --import tsx scripts/ingest-x.ts",
+    "backfill:titles": "node --env-file=.env.local --import tsx scripts/backfill-standalone-titles.ts",
     "digest": "node --env-file=.env.local --import tsx scripts/digest.ts"
   },
   "keywords": [],

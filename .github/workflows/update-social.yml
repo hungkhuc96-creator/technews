@@ -51,6 +51,10 @@ jobs:
         continue-on-error: true        # RSS Reddit có thể chặn IP datacenter — theo dõi lượt đầu
         run: npm run ingest:reddit
 
+      - name: Dịch bù tiêu đề X/YouTube kẹt tiếng Anh (ingest lúc hết credit)
+        continue-on-error: true        # hết credit/lỗi dịch không chặn workflow
+        run: npm run backfill:titles
+
       # Chỉ chạy khi bước KHÔNG-continue-on-error hỏng (vd YouTube crash).
       # X/Gemini để continue-on-error nên lỗi lẻ của chúng không kích cảnh báo.
       - name: Báo lỗi qua GitHub Issue
