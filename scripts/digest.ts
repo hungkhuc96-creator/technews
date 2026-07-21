@@ -7,7 +7,7 @@ import { sendTelegramMessage } from '../lib/notify/telegram.js';
 
 const HOST = process.env.SITE_URL ?? 'https://peek.vn';
 const CANDIDATE_POOL = 25; // lấy dư để còn chọn sau khi loại tin đã gửi
-const PICK = 5;
+const PICK = 3;
 const SENT_WINDOW_DAYS = 7;
 
 function todayVi(): string {
@@ -69,7 +69,7 @@ async function main() {
     .gte('sent_at', since);
   const sentIds = new Set((sent ?? []).map((r) => r.cluster_id as string));
 
-  // 4) Chọn top 5 chưa gửi (giữ thứ tự heat).
+  // 4) Chọn top 3 chưa gửi (giữ thứ tự heat).
   const candidates: DigestCandidate[] = ids.map((id) => ({
     clusterId: id,
     titleVi: (byId.get(id)?.title_vi as string | null) ?? null,
@@ -81,7 +81,7 @@ async function main() {
     return;
   }
 
-  // 5) Cụm nào thiếu tóm tắt → sinh ngay (lazy, tối đa 5 lượt gọi/ngày).
+  // 5) Cụm nào thiếu tóm tắt → sinh ngay (lazy, tối đa 3 lượt gọi/lần gửi).
   const chat = createChat();
   const items: DigestItem[] = [];
   for (const p of picked) {
