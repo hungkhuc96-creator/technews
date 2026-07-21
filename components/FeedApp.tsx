@@ -79,8 +79,17 @@ export function FeedApp({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
+  // Có đang LỌC client-side không (tìm kiếm / nguồn / chủ đề). Khi lọc, danh sách
+  // hiển thị ngắn lại → "mắt cảm biến" luôn trong màn hình. Nếu vẫn tự-nạp, mỗi lần
+  // fetch trả item KHÔNG khớp lọc → danh sách vẫn ngắn → nạp tiếp… fetch sạch cả kho
+  // + rerender liên tục (bug thật: search "Linux" hay lọc YouTube/X). → TẮT tự-nạp
+  // khi đang lọc; người dùng bấm nút "Tải thêm" thủ công nếu muốn tìm sâu hơn.
+  const filterActive = query.trim() !== '' || source !== 'all' || category !== 'Tất cả';
+
   // "Mắt cảm biến" ở đáy: tới gần là tự nạp thêm (rootMargin 600px = nạp sớm).
+  // CHỈ khi KHÔNG lọc (duyệt feed bình thường) — tránh vòng lặp fetch khi đang lọc.
   useEffect(() => {
+    if (filterActive) return;
     const el = sentinelRef.current;
     if (!el) return;
     const ob = new IntersectionObserver(
@@ -91,7 +100,7 @@ export function FeedApp({
     );
     ob.observe(el);
     return () => ob.disconnect();
-  }, [loadMore, loadError]);
+  }, [loadMore, loadError, filterActive]);
 
   const filtered = useMemo(() => {
     // "Mới nhất" dùng kho server (đã đúng thứ tự thời gian trên toàn kho).
@@ -203,6 +212,22 @@ export function FeedApp({
               <span>Mạng trục trặc, chưa tải được thêm tin.</span>
               <button type="button" onClick={() => { setLoadError(false); loadMore(); }}>
                 Thử lại
+              </button>
+            </div>
+          )}
+          {/* Đang lọc → nạp thêm THỦ CÔNG (không tự-nạp để tránh vòng lặp fetch). */}
+          {filterActive && !(mode === 'heat' ? reachedEnd : recentEnd) && !loadingMore && !loadError && (
+            <div className="feed-more">
+              <button
+                type="button"
+                onClick={loadMore}
+                style={{
+                  cursor: 'pointer', padding: '10px 22px', borderRadius: 999,
+                  border: '1px solid var(--border, #2a2a32)', background: 'var(--surface, #16161c)',
+                  color: 'inherit', font: 'inherit',
+                }}
+              >
+                Tải thêm tin để lọc sâu hơn
               </button>
             </div>
           )}
