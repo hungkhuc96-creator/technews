@@ -4,6 +4,7 @@ import { ingestX } from '../lib/sources/ingestX.js';
 import { runActorGetItems } from '../lib/sources/apifyClient.js';
 import { X_HANDLES } from '../lib/sources/xSeeds.js';
 import { createChat } from '../lib/summarize/llmClient.js';
+import { safeTranslated } from '../lib/summarize/translateSafety.js';
 
 // kaitoeasyapi: pay-per-result rẻ, CHẠY ĐƯỢC trên gói Apify Free (apidojo chặn Free).
 const ACTOR = 'kaitoeasyapi~twitter-x-data-tweet-scraper-pay-per-result-cheapest';
@@ -14,10 +15,17 @@ async function main() {
 
   const client = createServiceClient();
   const chat = createChat();
-  const translate = (text: string) =>
-    chat(
-      'Dịch tweet sau sang tiếng Việt tự nhiên, gọn, giữ nguyên thuật ngữ/tên riêng công nghệ. ' +
-      'CHỈ trả về bản dịch:\n\n' + text,
+  // safeTranslated: nếu tweet là mẩu cụt/ký hiệu khiến Claude "hỏi lại" thay vì dịch
+  // (case thật: tweet "B8" → "Tôi không thể dịch..."), giữ NGUYÊN bản gốc thay vì lưu
+  // câu hỏi đó làm tiêu đề.
+  const translate = async (text: string) =>
+    safeTranslated(
+      await chat(
+        'Dịch tweet sau sang tiếng Việt tự nhiên, gọn, giữ nguyên thuật ngữ/tên riêng công nghệ. ' +
+        'Nếu chỉ là ký hiệu/số/emoji/mẩu cụt không dịch được, TRẢ LẠI NGUYÊN VĂN, không giải thích, không hỏi lại. ' +
+        'CHỈ trả về bản dịch:\n\n' + text,
+      ),
+      text,
     );
 
   const result = await ingestX(X_HANDLES, {

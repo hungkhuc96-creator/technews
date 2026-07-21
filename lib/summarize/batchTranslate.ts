@@ -1,4 +1,5 @@
 import type { ChatFn } from './summarizeCluster';
+import { safeTranslated } from './translateSafety';
 
 // Dịch tối đa ngần này tiêu đề mỗi lần gọi. Lô lớn dễ tràn max_tokens → JSON cụt →
 // dịch hỏng (trả về bản gốc tiếng Anh). Chia nhỏ để mỗi lần gọi luôn đủ chỗ.
@@ -12,6 +13,8 @@ export function makeTitleTranslator(chat: ChatFn): (titles: string[]) => Promise
     const prompt =
       'Dịch danh sách tiêu đề công nghệ sau sang tiếng Việt tự nhiên, gọn, ' +
       'GIỮ NGUYÊN tên riêng/tên sản phẩm/thuật ngữ (vd iPhone, RTX 5090, M4). ' +
+      'Nếu một mục chỉ là ký hiệu/số/emoji/mẩu cụt không dịch được, GIỮ NGUYÊN mục đó, ' +
+      'TUYỆT ĐỐI không giải thích hay hỏi lại. ' +
       'CHỈ trả về một mảng JSON các chuỗi đã dịch, ĐÚNG THỨ TỰ và ĐÚNG SỐ LƯỢNG, ' +
       'không thêm bất kỳ chữ nào khác.\n\n' + JSON.stringify(titles);
     try {
@@ -19,7 +22,9 @@ export function makeTitleTranslator(chat: ChatFn): (titles: string[]) => Promise
       const m = raw.match(/\[[\s\S]*\]/);
       if (m) {
         const arr = JSON.parse(m[0]);
-        if (Array.isArray(arr) && arr.length === titles.length) return arr.map((x) => String(x));
+        // safeTranslated: nếu AI lỡ trả câu từ chối/hỏi lại cho mục nào → giữ bản gốc mục đó.
+        if (Array.isArray(arr) && arr.length === titles.length)
+          return arr.map((x, i) => safeTranslated(String(x), titles[i]));
       }
     } catch {
       /* dịch lỗi → giữ tiêu đề gốc */
