@@ -16,10 +16,12 @@ export function FeedApp({
   items: initialItems,
   counts,
   initialOffset,
+  nowIso,
 }: {
   items: FeedItem[];
   counts: Record<string, number>;
   initialOffset: number;
+  nowIso: string;
 }) {
   const [nav, setNav] = useState('Trang chủ');
   const [source, setSource] = useState('all');
@@ -27,7 +29,14 @@ export function FeedApp({
   const [query, setQuery] = useState('');
   const [reader, setReader] = useState<FeedItem | null>(null);
   const [menuOpen, setMenuOpen] = useState(false); // menu gộp góc phải (mobile)
-  const [now] = useState(() => new Date());
+  // Mốc thời gian tính "x phút trước". Render LẦN ĐẦU (server + hydrate client) BẮT BUỘC
+  // dùng chung mốc server truyền xuống (nowIso đã nướng vào HTML) — nếu khởi tạo bằng
+  // new Date() thì client hydrate ra giờ khác server → chuỗi thời gian lệch → React #418
+  // (hydration mismatch). Sau khi mount mới nhảy sang giờ thực để thời gian luôn sống.
+  const [now, setNow] = useState(() => new Date(nowIso));
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
 
   // Cuộn vô hạn — 2 "kho" riêng: Trang chủ (độ nóng, nạp sẵn từ server) và
   // Mới nhất (thuần thời gian trên TOÀN KHO, fetch riêng ?sort=recent).

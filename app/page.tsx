@@ -27,7 +27,7 @@ export default async function Home() {
     <>
       {/* H1 ẩn về hình nhưng máy đọc được — trang chủ cần 1 H1 nêu chủ đề site */}
       <h1 className="sr-only">peek — Tin công nghệ nước ngoài tóm tắt tiếng Việt</h1>
-      <FeedApp items={items} counts={counts} initialOffset={FIRST_PAGE} />
+      <FeedApp items={items} counts={counts} initialOffset={FIRST_PAGE} nowIso={new Date().toISOString()} />
     </>
   );
 }
